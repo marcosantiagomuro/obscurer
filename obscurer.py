@@ -25,13 +25,18 @@ def random_int(len):
 
 
 usernames = ['admin', 'support', 'guest',
-             'user', 'service', 'tech', 'administrator']
-passwords = ['system', 'enable', 'password', 'shell', 'root', 'support']
+             'user', 'service', 'tech', 'administrator', 'root', 'ubuntu']
+passwords = ['system', 'enable', 'password', 'shell', 'root', 'support', 'toor', '123456']
 services = ['syslog', 'mongodb', 'statd', 'pulse']
 operatingsystem = ['Ubuntu 14.04.5 LTS',
-                   'Ubuntu 16.04 LTS', 'Debian GNU/Linux 6']
+                   'Ubuntu 16.04 LTS',
+                   'Ubuntu 18.04 LTS',
+                   'Ubuntu 20.04 LTS',
+                   'Debian 7.11',
+                   'Debian 8.11']
 hostnames = ['web', 'db', 'nas', 'dev', 'backups', 'dmz']
-hostname = random.choice(hostnames)
+hostnames_suffixes = ['0a', '-01', '-srv', '-01a', '01', '001']
+hostname = random.choice(hostnames)+random.choice(hostnames_suffixes)
 nix_versions = {
     'Linux version 2.6.32-042stab116.2 (root@kbuild-rh6-x64.eng.sw.ru) (gcc version 4.4.6 20120305 (Red Hat 4.4.6-4) (GCC) ) #1 SMP Fri Jun 24 15:33:57 MSK 2016':
     'Linux {0} 2.6.32-042stab116.2 #1 SMP Fri Jun 24 15:33:57 MSK 2016 x86_64 x86_64 x86_64 GNU/Linux'.format(
@@ -92,12 +97,17 @@ ps_aux_usr = ['/sbin/dhclient', '/sbin/getty', '/usr/lib/gvfs/gvfs-afc-volume-mo
               '/usr/lib/xorg/Xorg', '/usr/sbin/cups-browsed', '/usr/sbin/cupsd', '/usr/sbin/dnsmasq',
               '/usr/sbin/irqbalance', '/usr/sbin/kerneloops', '/usr/sbin/ModemManager', '/usr/sbin/pcscd',
               '/usr/sbin/pptpd']
-ssh_ver = ['SSH-2.0-OpenSSH_5.1p1 Debian-5', 'SSH-1.99-OpenSSH_4.3', 'SSH-1.99-OpenSSH_4.7',
-           'SSH-2.0-OpenSSH_5.1p1 Debian-5', 'SSH-2.0-OpenSSH_5.1p1 FreeBSD-20080901',
-           'SSH-2.0-OpenSSH_5.3p1 Debian-3ubuntu5',
-           'SSH-2.0-OpenSSH_5.3p1 Debian-3ubuntu6', 'SSH-2.0-OpenSSH_5.3p1 Debian-3ubuntu7',
-           'SSH-2.0-OpenSSH_5.5p1 Debian-6+squeeze2', 'SSH-2.0-OpenSSH_5.9p1 Debian-5ubuntu1',
-           ' SSH-2.0-OpenSSH_6.0p1 Debian-4+deb7u1']
+ssh_ver = ['SSH-2.0-OpenSSH_5.1p1 Debian-5',
+           'SSH-1.99-OpenSSH_4.3',
+           'SSH-1.99-OpenSSH_4.7',
+           'SSH-2.0-OpenSSH_5.1p1 FreeBSD-20080901',
+           'SSH-2.0-OpenSSH_5.3p1 Debian-3ubuntu6',
+           'SSH-2.0-OpenSSH_5.5p1 Debian-6+squeeze2',
+           'SSH-2.0-OpenSSH_6.0p1 Debian-4+deb7u1',
+           'SSH-2.0-OpenSSH_6.6.1p1 Ubuntu-2ubuntu2.13',
+           'SSH-2.0-OpenSSH_7.4',
+           'SSH-2.0-OpenSSH_8.0',
+           'OpenSSH_7.4p1 Ubuntu-10ubuntu2.10']
 arch = ["bsd-aarch64-lsb", "bsd-aarch64-msb", "bsd-bfin-msb", "bsd-mips64-lsb", "bsd-mips64-msb",
         "bsd-mips-lsb", "bsd-mips-msb", "bsd-powepc64-lsb", "bsd-powepc-msb", "bsd-riscv64-lsb", "bsd-sparc64-msb", "bsd-sparc-msb", "bsd-x32-lsb", "bsd-x64-lsb", "linux-aarch64-lsb",
         "linux-aarch64-msb", "linux-alpha-lsb", "linux-am33-lsb", "linux-arc-lsb", "linux-arc-msb", "linux-arm-lsb", "linux-arm-msb", "linux-avr32-lsb", "linux-bfin-lsb", "linux-c6x-lsb",
@@ -186,6 +196,66 @@ def generate_mac():
     return mac_addresses
 #########################################################################################
 
+def setup_ubuntu_home(honeyfs_path="honeyfs/home/ubuntu"):
+    # Ensure directory structure exists
+    ssh_dir = os.path.join(honeyfs_path, ".ssh")
+    os.makedirs(ssh_dir, exist_ok=True)
+
+    # File paths
+    bash_history_path = os.path.join(honeyfs_path, ".bash_history")
+    authorized_keys_path = os.path.join(ssh_dir, "authorized_keys")
+    profile_path = os.path.join(honeyfs_path, ".profile")
+
+    # Contents
+    bash_history_content = """sudo apt update
+sudo apt upgrade -y
+cd /var/log
+ls -la
+cat auth.log
+ssh-keygen -t ed25519
+sudo systemctl status ssh
+nano /etc/ssh/sshd_config
+htop
+ps aux | grep python
+journalctl -xe
+sudo reboot
+"""
+
+    authorized_keys_content = """ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIC8UjdbiuWeEyPu5xwVuYorI0bmHfH1s7+3NQ0o2hkZL ubuntu@workstation
+ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC0K9adk7HYa8CvnfC/4VZkSN3WISjQqq2ySg9d+pbGfgH3Fbi8B0bn5NyxYQ9X6NxZGmbb70D5dS8YdwCXWFAw2rKMnWKXPc0i/SV6JiSJOHCOeG6heXpdMd0RySOyVJ964tXRBJSO7eayv1brUYS+vQH73SzvYFx8S9txPhKcM0BjwQNL63/Hz0MLTIvJqV0TeqcF1ByG30oovYRhgvUOAJN9DUhUQ1Tq2Pp0e2XK3DPHfiWE6VJwAEb3P63Uz9xaGVZm0ZW+BDwFh1nYz6Rs8QW4k9LGipSbrIbZdh+uTgowj8kTBySByUrQk88UJq6vjJhesC9dE4vR example@laptop
+"""
+
+    profile_content = """# ~/.profile: executed by the command interpreter for login shells.
+
+if [ -n "$BASH_VERSION" ]; then
+    # include .bashrc if it exists
+    if [ -f "$HOME/.bashrc" ]; then
+        . "$HOME/.bashrc"
+    fi
+fi
+
+# set PATH so it includes user's private bin if it exists
+if [ -d "$HOME/bin" ] ; then
+    PATH="$HOME/bin:$PATH"
+fi
+
+# set PATH for local scripts
+if [ -d "$HOME/scripts" ] ; then
+    PATH="$HOME/scripts:$PATH"
+fi
+"""
+
+    # Write files
+    with open(bash_history_path, "w") as f:
+        f.write(bash_history_content)
+
+    with open(authorized_keys_path, "w") as f:
+        f.write(authorized_keys_content)
+
+    with open(profile_path, "w") as f:
+        f.write(profile_content)
+
+    print(f"Created ubuntu fake home directory at {honeyfs_path}")
 
 ## Generate Host Profile ##
 ram_size = 512 * random.choice(range(2, 16, 2))
@@ -529,8 +599,8 @@ def group(cowrie_install_dir):
         group_file.truncate()
         group_file.close()
 
-# The following function below makes changes to the passwd file in the directory cowrie/honeyfs/etc by replacing the user phil with a selection of random usernames
 
+# The following function below makes changes to the passwd file in the directory cowrie/honeyfs/etc by replacing the user phil with a selection of random usernames
 
 def passwd(cowrie_install_dir):
     print('Changing passwd file.')
@@ -562,7 +632,6 @@ def passwd(cowrie_install_dir):
         passwd_file.close()
 
 # The following function below edits the shadow file in the directory cowrie/honeyfs/etc which removes the phil user in addition to adding new users with salted hash passwords
-
 
 def shadow(cowrie_install_dir):
     print('Changing shadow file.')
@@ -602,10 +671,48 @@ def shadow(cowrie_install_dir):
         shadow_file.truncate()
         shadow_file.close()
 
+# The following function below creates the directories of the user defined above in the directory cowrie/honeyfs/home
+# After creating them we add belieavle files to each home directory like .bashrc, .profile and .ssh/authorized_keys
+def home_dirs(cowrie_install_dir):
+    print('Creating home directories.')
+    for user in users:
+        user_home_dir = "{0}{1}{2}{3}".format(
+            cowrie_install_dir, "/honeyfs/home/", user, "/")
+        if not os.path.exists(user_home_dir):
+            os.makedirs(user_home_dir)
+        # set up directory structure and files in home dir
+        setup_ubuntu_home(user_home_dir)
+
+
+
+
+
+
+# The follwing function below creates in the directory /honeyfs/etc the os-relase file if it does not already exist.
+# The os-release file contains information about the operating system being simulated by the honeypot
+
+def os_release(cowrie_install_dir):
+    print('Creating os-release file.')
+    if not os.path.isfile("{0}{1}".format(cowrie_install_dir, "/honeyfs/etc/os-release")):
+        with open("{0}{1}".format(cowrie_install_dir, "/honeyfs/etc/os-release"), "w") as os_release_file:
+            os_release_contents = '''
+NAME="Ubuntu"
+VERSION="20.04.4 LTS (Focal Fossa)"
+ID=ubuntu
+ID_LIKE=debian
+PRETTY_NAME="Ubuntu 20.04.4 LTS"
+VERSION_ID="20.04"
+HOME_URL="https://www.ubuntu.com/"
+SUPPORT_URL="https://help.ubuntu.com/"
+BUG_REPORT_URL="https://bugs.launchpad.net/ubuntu/"
+'''
+            os_release_file.write(os_release_contents.strip())
+            os_release_file.close()
+
+
 # The following functions below edits the main configuration of Cowrie under the filename etc/cowrie.cfg
 # It checks if a copy of the configuraiton exists and  if not then it creatres a copy ofrom the directory etc/cowrie.cfg.dist.
 # The functiones changes the hostnames as well as the fake ip  ip address to another value
-
 
 def cowrie_cfg(cowrie_install_dir):
     print('Editing main configuration.')
@@ -634,9 +741,8 @@ def cowrie_cfg(cowrie_install_dir):
             cowrie_cfg_update.truncate()
             cowrie_cfg_update.close()
 
+
 # The following function below replaces the  default hostname in the directory honeyfs/etc/hosts from "nas3" to any of the hostnames in the 'hostnames' array
-
-
 def hosts(cowrie_install_dir):
     print('Replacing Hosts.')
     with open("{0}{1}".format(cowrie_install_dir, "/honeyfs/etc/hosts"), "r+") as host_file:
@@ -686,9 +792,10 @@ def userdb(cowrie_install_dir):
                 userdb_file.write("\n{0}:x:{1}".format(user, p))
         userdb_file.truncate()
         userdb_file.close()
+
+
 # The following function below  checks whether or not  the fs.pickle file exist in the directory honeyfs/home.
 # If the  file does not exist then the function below creates the "home" directory inside the honeyfs and using the command 'bin/createfs -l../honeyfs -o fs.piickle' to create the pickle file.
-
 
 def fs_pickle(cowrie_install_dir):
     print('Creating filesystem.')
@@ -703,6 +810,9 @@ def fs_pickle(cowrie_install_dir):
         pass
     os.system(
         "{0}/bin/createfs -l {0}/honeyfs -o {0}/share/cowrie/fs.pickle".format(cowrie_install_dir))
+    
+
+
 # The following function below  executes the installations one at a time
 # In the events of an error, it will prompt a message to check the file path and try again
 
