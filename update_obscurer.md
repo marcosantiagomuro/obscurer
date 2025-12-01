@@ -64,3 +64,13 @@ in userauth.py  >> session level delays 50ms to 500ms
 in shell.py or shell/interact.py >> character delays from 50 ms to 150ms
 
 >> command level delays from 50ms to 800ms   for complex commands outputs
+
+
+
+
+
+Kernel Build String >> uname -a
+
+Nix version >> nix --version
+
+debian OS profile / system info >> cat /etc/os-release

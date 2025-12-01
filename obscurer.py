@@ -29,7 +29,8 @@ def random_int(len):
 
 usernames = ['admin', 'support', 'guest',
              'user', 'service', 'tech', 'administrator', 'root', 'ubuntu']
-passwords = ['system', 'enable', 'password', 'shell', 'root', 'support', 'toor', '123456']
+passwords = ['system', 'enable', 'password',
+             'shell', 'root', 'support', 'toor', '123456']
 services = ['syslog', 'mongodb', 'statd', 'pulse']
 operatingsystem = ['Ubuntu 14.04.5 LTS',
                    'Ubuntu 16.04 LTS',
@@ -39,35 +40,190 @@ operatingsystem = ['Ubuntu 14.04.5 LTS',
                    'Debian 8.11']
 hostnames = ['web', 'db', 'nas', 'dev', 'backups', 'dmz']
 hostnames_suffixes = ['0a', '-01', '-srv', '-01a', '01', '001']
-hostname = random.choice(hostnames)+random.choice(hostnames_suffixes)
-nix_versions = {
-    'Linux version 2.6.32-042stab116.2 (root@kbuild-rh6-x64.eng.sw.ru) (gcc version 4.4.6 20120305 (Red Hat 4.4.6-4) (GCC) ) #1 SMP Fri Jun 24 15:33:57 MSK 2016':
-    'Linux {0} 2.6.32-042stab116.2 #1 SMP Fri Jun 24 15:33:57 MSK 2016 x86_64 x86_64 x86_64 GNU/Linux'.format(
-        hostname),
-        'Linux version 4.4.0-62-generic (buildd@lcy01-33) (gcc version 4.8.4 (Ubuntu 4.8.4-2ubuntu1~14.04.3) ) #83~14.04.1-Ubuntu SMP Wed Jan 18 18:10:30 UTC 2017':
-    'Linux {0} 4.4.0-62-generic #83~14.04.1-Ubuntu SMP Wed Jan 18 18:10:30 UTC 2017 x86_64 x86_64 x86_64 GNU/Linux'.format(
-        hostname),
-        'Linux version 4.4.0-36-generic (buildd@lgw01-20) (gcc version 4.8.4 (Ubuntu 4.8.4-2ubuntu1~14.04.3) ) #55~14.04.1-Ubuntu SMP Fri Aug 12 11:49:30 UTC 2016':
-    'Linux {0} 4.4.0-36-generic #55~14.04.1-Ubuntu SMP Fri Aug 12 11:49:30 UTC 2016 x86_64 x86_64 x86_64 GNU/Linux'.format(
-        hostname),
-        'Linux version 4.4.0-59-generic (buildd@lcy01-32) (gcc version 4.8.4 (Ubuntu 4.8.4-2ubuntu1~14.04.3) ) #80~14.04.1-Ubuntu SMP Fri Jan 6 18:02:02 UTC 2017':
-    'Linux {0} 4.4.0-59-generic #80~14.04.1-Ubuntu SMP Fri Jan 6 18:02:02 UTC 2017 x86_64 x86_64 x86_64 GNU/Linux'.format(
-        hostname),
-        'Linux version 4.6.0-nix-amd64 (devel@kgw92.org) (gcc version 5.4.0 20160609 (Debian 5.4.0-6) ) #1 SMP Debian 4.6.4-1nix1 (2016-07-21)':
-    'Linux {0} 4.6.0-nix1-amd64 #1 SMP Debian 4.6.4-1nix1 (2016-07-21) x86_64 GNU/Linux'.format(
-        hostname),
-        'Linux version 3.13.0-108-generic (buildd@lgw01-60) (gcc version 4.8.4 (Ubuntu 4.8.4-2ubuntu1~14.04.3) ) #155-Ubuntu SMP Wed Jan 11 16:58:52 UTC 2017':
-    'Linux {0} 3.13.0-108-generic #155-Ubuntu SMP Wed Jan 11 16:58:52 UTC 2017 x86_64 x86_64 x86_64 GNU/Linux'.format(
-        hostname)}
 
-kbs = ["#1 SMP Red Hat 4.4.6-4",
-       "#55~14.04.1-Ubuntu SMP",
-       "#1 SMP Debian 4.6.4-1nix1",
-       "#155-Ubuntu SMP"]
-kernel_build_string = random.choice(kbs)
+KERNELS = {
+    "rhel-2.6.32": {
+        "proc_version": (
+            "Linux version 2.6.32-042stab116.2 "
+            "(root@kbuild-rh6-x64.eng.sw.ru) "
+            "(gcc version 4.4.6 20120305 (Red Hat 4.4.6-4) (GCC) ) "
+            "#1 SMP Fri Jun 24 15:33:57 MSK 2016"
+        ),
+        "uname_template": (
+            "Linux {hostname} 2.6.32-042stab116.2 "
+            "#1 SMP Fri Jun 24 15:33:57 MSK 2016 x86_64 x86_64 x86_64 GNU/Linux"
+        ),
+        "arch_choices": ["linux-x64-lsb", "linux-x86-lsb"],
+    },
+
+    "ubuntu-1404-4.4.0-62": {
+        "proc_version": (
+            "Linux version 4.4.0-62-generic (buildd@lcy01-33) "
+            "(gcc version 4.8.4 (Ubuntu 4.8.4-2ubuntu1~14.04.3) ) "
+            "#83~14.04.1-Ubuntu SMP Wed Jan 18 18:10:30 UTC 2017"
+        ),
+        "uname_template": (
+            "Linux {hostname} 4.4.0-62-generic "
+            "#83~14.04.1-Ubuntu SMP Wed Jan 18 18:10:30 UTC 2017 "
+            "x86_64 x86_64 x86_64 GNU/Linux"
+        ),
+        "arch_choices": ["linux-x64-lsb", "linux-x86-lsb"],
+    },
+
+    "ubuntu-1404-4.4.0-36": {
+        "proc_version": (
+            "Linux version 4.4.0-36-generic (buildd@lgw01-20) "
+            "(gcc version 4.8.4 (Ubuntu 4.8.4-2ubuntu1~14.04.3) ) "
+            "#55~14.04.1-Ubuntu SMP Fri Aug 12 11:49:30 UTC 2016"
+        ),
+        "uname_template": (
+            "Linux {hostname} 4.4.0-36-generic "
+            "#55~14.04.1-Ubuntu SMP Fri Aug 12 11:49:30 UTC 2016 "
+            "x86_64 x86_64 x86_64 GNU/Linux"
+        ),
+        "arch_choices": ["linux-x64-lsb", "linux-x86-lsb"],
+    },
+
+    "ubuntu-1404-4.4.0-59": {
+        "proc_version": (
+            "Linux version 4.4.0-59-generic (buildd@lcy01-32) "
+            "(gcc version 4.8.4 (Ubuntu 4.8.4-2ubuntu1~14.04.3) ) "
+            "#80~14.04.1-Ubuntu SMP Fri Jan 6 18:02:02 UTC 2017"
+        ),
+        "uname_template": (
+            "Linux {hostname} 4.4.0-59-generic "
+            "#80~14.04.1-Ubuntu SMP Fri Jan 6 18:02:02 UTC 2017 "
+            "x86_64 x86_64 x86_64 GNU/Linux"
+        ),
+        "arch_choices": ["linux-x64-lsb", "linux-x86-lsb"],
+    },
+
+    "debian-4.6.0-nix": {
+        "proc_version": (
+            "Linux version 4.6.0-nix-amd64 (devel@kgw92.org) "
+            "(gcc version 5.4.0 20160609 (Debian 5.4.0-6) ) "
+            "#1 SMP Debian 4.6.4-1nix1 (2016-07-21)"
+        ),
+        "uname_template": (
+            "Linux {hostname} 4.6.0-nix1-amd64 "
+            "#1 SMP Debian 4.6.4-1nix1 (2016-07-21) x86_64 GNU/Linux"
+        ),
+        "arch_choices": ["linux-x64-lsb", "linux-x86-lsb"],
+    },
+
+    "ubuntu-1404-3.13.0-108": {
+        "proc_version": (
+            "Linux version 3.13.0-108-generic (buildd@lgw01-60) "
+            "(gcc version 4.8.4 (Ubuntu 4.8.4-2ubuntu1~14.04.3) ) "
+            "#155-Ubuntu SMP Wed Jan 11 16:58:52 UTC 2017"
+        ),
+        "uname_template": (
+            "Linux {hostname} 3.13.0-108-generic "
+            "#155-Ubuntu SMP Wed Jan 11 16:58:52 UTC 2017 "
+            "x86_64 x86_64 x86_64 GNU/Linux"
+        ),
+        "arch_choices": ["linux-x64-lsb", "linux-x86-lsb"],
+    },
+}
+
+OS_PROFILES = {
+    "ubuntu-1404": {
+        "pretty_name": "Ubuntu 14.04.5 LTS",
+        "kernel_ids": [
+            "ubuntu-1404-3.13.0-108",
+            "ubuntu-1404-4.4.0-36",
+            "ubuntu-1404-4.4.0-59",
+            "ubuntu-1404-4.4.0-62",
+        ],
+        "ssh_versions": [
+            'SSH-2.0-OpenSSH_6.6.1p1 Ubuntu-2ubuntu2.13',
+            'SSH-2.0-OpenSSH_5.3p1 Debian-3ubuntu6',
+            'SSH-2.0-OpenSSH_5.5p1 Debian-6+squeeze2',
+        ],
+        "arch_choices": ["linux-x64-lsb", "linux-x86-lsb"],
+    },
+
+    "ubuntu-1604": {
+        "pretty_name": "Ubuntu 16.04 LTS",
+        "kernel_ids": [
+            "ubuntu-1404-4.4.0-36",
+            "ubuntu-1404-4.4.0-59",
+            "ubuntu-1404-4.4.0-62",
+        ],
+        "ssh_versions": [
+            'SSH-2.0-OpenSSH_6.6.1p1 Ubuntu-2ubuntu2.13',
+            'SSH-2.0-OpenSSH_7.4',
+            'SSH-2.0-OpenSSH_8.0',
+            'OpenSSH_7.4p1 Ubuntu-10ubuntu2.10',
+        ],
+        "arch_choices": ["linux-x64-lsb"],
+    },
+
+    "ubuntu-1804": {
+        "pretty_name": "Ubuntu 18.04 LTS",
+        "kernel_ids": [
+            "ubuntu-1404-4.4.0-59",
+            "ubuntu-1404-4.4.0-62",
+        ],
+        "ssh_versions": [
+            'SSH-2.0-OpenSSH_7.4',
+            'SSH-2.0-OpenSSH_8.0',
+            'OpenSSH_7.4p1 Ubuntu-10ubuntu2.10',
+        ],
+        "arch_choices": ["linux-x64-lsb"],
+    },
+
+    "ubuntu-2004": {
+        "pretty_name": "Ubuntu 20.04 LTS",
+        "kernel_ids": [
+            "ubuntu-1404-4.4.0-59",
+            "ubuntu-1404-4.4.0-62",
+        ],
+        "ssh_versions": [
+            'SSH-2.0-OpenSSH_7.4',
+            'SSH-2.0-OpenSSH_8.0',
+            'OpenSSH_7.4p1 Ubuntu-10ubuntu2.10',
+        ],
+        "arch_choices": ["linux-x64-lsb"],
+    },
+
+    "debian-7": {
+        "pretty_name": "Debian 7.11",
+        "kernel_ids": [
+            "rhel-2.6.32",
+            "debian-4.6.0-nix",
+        ],
+        "ssh_versions": [
+            'SSH-2.0-OpenSSH_5.1p1 Debian-5',
+            'SSH-1.99-OpenSSH_4.7',
+            'SSH-2.0-OpenSSH_6.0p1 Debian-4+deb7u1',
+        ],
+        "arch_choices": ["linux-x64-lsb", "linux-x86-lsb"],
+    },
+
+    "debian-8": {
+        "pretty_name": "Debian 8.11",
+        "kernel_ids": [
+            "debian-4.6.0-nix",
+        ],
+        "ssh_versions": [
+            'SSH-2.0-OpenSSH_6.0p1 Debian-4+deb7u1',
+            'SSH-2.0-OpenSSH_6.6.1p1 Ubuntu-2ubuntu2.13',
+        ],
+        "arch_choices": ["linux-x64-lsb"],
+    },
+}
 
 
-version, uname = random.choice(list(nix_versions.items()))
+# kbs = ["#1 SMP Red Hat 4.4.6-4",
+#    "#55~14.04.1-Ubuntu SMP",
+#    "#1 SMP Debian 4.6.4-1nix1",
+#    "#155-Ubuntu SMP"]
+# kernel_build_string = random.choice(kbs)
+
+
+# version, uname = random.choice(list(nix_versions.items()))
+
 processors = ['Intel(R) Core(TM) i7-2960XM CPU @ 2.70GHz', 'Intel(R) Core(TM) i5-4590S CPU @ 3.00GHz',
               'Intel(R) Core(TM) i3-4005U CPU @ 1.70GHz']
 cpu_flags = ['rdtscp', 'arch_perfmon', 'nopl', 'xtopology', 'nonstop_tsc', 'aperfmperf', 'eagerfpu', 'pclmulqdq',
@@ -100,6 +256,8 @@ ps_aux_usr = ['/sbin/dhclient', '/sbin/getty', '/usr/lib/gvfs/gvfs-afc-volume-mo
               '/usr/lib/xorg/Xorg', '/usr/sbin/cups-browsed', '/usr/sbin/cupsd', '/usr/sbin/dnsmasq',
               '/usr/sbin/irqbalance', '/usr/sbin/kerneloops', '/usr/sbin/ModemManager', '/usr/sbin/pcscd',
               '/usr/sbin/pptpd']
+
+'''
 ssh_ver = ['SSH-2.0-OpenSSH_5.1p1 Debian-5',
            'SSH-1.99-OpenSSH_4.3',
            'SSH-1.99-OpenSSH_4.7',
@@ -118,7 +276,8 @@ arch = ["bsd-aarch64-lsb", "bsd-aarch64-msb", "bsd-bfin-msb", "bsd-mips64-lsb", 
         "linux-microblaze-msb", "linux-mips64-lsb", "linux-mips64-msb", "linux-mips-lsb", "linux-mips-msb", "linux-mn10300-lsb", "linux-nios-lsb", "linux-nios-msb", "linux-powerpc64-lsb",
         "linux-powerpc64-msb", "linux-powerpc-lsb", "linux-powerpc-msb", "linux-riscv64-lsb", "linux-s390x-msb", "linux-sh-lsb", "linux-sh-msb", "linux-sparc64-msb", "linux-sparc-msb",
         "linux-tilegx64-lsb", "linux-tilegx64-msb", "linux-tilegx-lsb", "linux-tilegx-msb", "linux-x64-lsb", "linux-x86-lsb", "linux-xtensa-msb", "osx-x32-lsb", "osx-x64-lsb"]
-sshversion = random.choice(ssh_ver)
+'''
+# sshversion = random.choice(ssh_ver)
 user_count = random.randint(1, 3)
 users = []
 password = []
@@ -147,7 +306,48 @@ ip_address = random.choice(ip_ranges)
 ipv6_number = list(map(int, ip_address.split('.')))
 
 
-#====================== getting MAC addresses =========================#
+def make_hostname():
+    return random.choice(hostnames) + random.choice(hostnames_suffixes)
+
+
+def make_system_profile():
+    hostname = make_hostname()
+
+    # pick OS first
+    os_key = random.choice(list(OS_PROFILES.keys()))
+    os_profile = OS_PROFILES[os_key]
+
+    # pick kernel compatible with that OS
+    kernel_id = random.choice(os_profile["kernel_ids"])
+    kernel_info = KERNELS[kernel_id]
+
+    # pick architecture (intersection of OS + kernel choices if you want)
+    arch_choices = list(
+        set(os_profile["arch_choices"]) & set(kernel_info["arch_choices"])
+    ) or os_profile["arch_choices"]
+    arch = random.choice(arch_choices)
+
+    # pick ssh version that fits that OS
+    ssh_version = random.choice(os_profile["ssh_versions"])
+
+    system_profile = {
+        "hostname": hostname,
+        "os_pretty_name": os_profile["pretty_name"],
+        "os_key": os_key,
+        "kernel_id": kernel_id,
+        "proc_version": kernel_info["proc_version"],
+        "uname": kernel_info["uname_template"].format(hostname=hostname),
+        "arch": arch,
+        "ssh_version": ssh_version,
+    }
+
+    return system_profile
+
+
+SYSTEM_PROFILE = make_system_profile()
+
+
+# ====================== getting MAC addresses =========================#
 
 # Getting the list of OUIs and making a MAC Address list
 # Prior to changing any values in the Cowrie, the following function below  downloads a sanitized OUI file from the website https://linuxnet.ca
@@ -167,7 +367,7 @@ def getoui():
         print("Could not retrieve the OUI file. Skipping MAC address changes.")
         print(f"Error: {e}")
         return 1
-    
+
 
 # The function below ustilizes the getoui() function to download list of valid OUI's.
 # If the oui.txt file exists in the directory, it will then prompt the user to parse the file instead download a new one.
@@ -177,7 +377,8 @@ def generate_mac():
     # Check if the oui.csv file exists in the same directory as the script.
     if os.path.isfile(filename):
         parsebool = ""
-        print("An oui file has been found. Parse (p) this file or retrieve (r) a new one? p/r")
+        print(
+            "An oui file has been found. Parse (p) this file or retrieve (r) a new one? p/r")
         while parsebool not in ('p', 'r'):
             parsebool = input("Input (p/r): ").strip().lower()
         if parsebool == 'r':
@@ -186,11 +387,11 @@ def generate_mac():
     else:
         if getoui() == 1:
             return 1
-        
+
     print("Generating random MAC addresses.")
     ouiarray = []
-    
-     # Open the CSV file for reading.
+
+    # Open the CSV file for reading.
     with open(filename, 'r', newline='') as ouifile:
         reader = csv.reader(ouifile)
         # Skip header: Registry,Assignment,Organization Name,Organization Address
@@ -224,10 +425,7 @@ def generate_mac():
     return mac_addresses
 
 
-
-
-
-#====================== cowrie.cfg file - MAIN CONFIGURATION =========================#
+# ====================== cowrie.cfg file - MAIN CONFIGURATION =========================#
 
 # The following functions below edits the main configuration of Cowrie under the filename etc/cowrie.cfg
 # It checks if a copy of the configuraiton exists and  if not then it creatres a copy ofrom the directory etc/cowrie.cfg.dist.
@@ -241,14 +439,17 @@ def cowrie_cfg(cowrie_install_dir):
     with open("{0}{1}".format(cowrie_install_dir, "/etc/cowrie.cfg"), "r+") as cowrie_cfg:
         cowrie_config = cowrie_cfg.read()
         cowrie_cfg.seek(0)
-        test = ""
         refunc = "(?<=version ).*?(?= \()"
-        uname_kernel = re.findall(refunc, version)
-        replacements = {"svr04": hostname, "#fake_addr = 192.168.66.254": "fake_addr = {0}".format(ip_address),
-                        "version = SSH-2.0-OpenSSH_6.0p1 Debian-4+deb7u2": "version = {0}".format(sshversion), "#listen_port = 2222": "listen_port = 2222",
-                        "tcp:2222": "tcp:2222",
-                        "kernel_version = 3.2.0-4-amd64": "kernel_version = {0}".format(uname_kernel[0]),
-                        "kernel_build_string = #1 SMP Debian 3.2.68-1+deb7u1": "kernel_build_string = {0}".format(kernel_build_string)}
+        proc_version = SYSTEM_PROFILE["proc_version"]
+        uname_kernel = re.findall(refunc, proc_version)
+        replacements = {
+            "svr04": SYSTEM_PROFILE["hostname"],
+            "#fake_addr = 192.168.66.254": "fake_addr = {0}".format(ip_address),
+            "version = SSH-2.0-OpenSSH_6.0p1 Debian-4+deb7u2": "version = {0}".format(SYSTEM_PROFILE["ssh_version"]),
+            "#listen_port = 2222": "listen_port = 2222",
+            "tcp:2222": "tcp:2222",
+            "kernel_version = 3.2.0-4-amd64": "kernel_version = {0}".format(uname_kernel[0]),
+            "kernel_build_string = #1 SMP Debian 3.2.68-1+deb7u1": "kernel_build_string = {0}".format(SYSTEM_PROFILE["kernel_build_string"])}
         substrs = sorted(replacements, key=len, reverse=True)
         regexp = re.compile('|'.join(map(re.escape, substrs)))
         config_update = regexp.sub(
@@ -260,9 +461,7 @@ def cowrie_cfg(cowrie_install_dir):
             cowrie_cfg_update.close()
 
 
-
-
-#====================== userdb.txt file - USER DATABASE for SSH ACCESS =========================#
+# ====================== userdb.txt file - USER DATABASE for SSH ACCESS =========================#
 
 # The following function below replaces the  users associated with direcotry etc/userdb.txt  by replacing the  usernames and passwords from the 'usernames' and 'passwords' array.
 def userdb(cowrie_install_dir):
@@ -279,10 +478,7 @@ def userdb(cowrie_install_dir):
         userdb_file.close()
 
 
-
-
-
-#====================== userauth.py - COWRIE AUTHENTICATION =========================#
+# ====================== userauth.py - COWRIE AUTHENTICATION =========================#
 
 # The following changes below are made to the userauth.py file located in cowrie/ssh/userauth.py
 # The changes will introduce randomised accepatble delays to Cowrie's userauth.py sendBanner() function
@@ -393,10 +589,7 @@ def add_random_delay_userauth(cowrie_install_dir):
     print("Randomized delay successfully added to userauth.py")
 
 
-
-
-
-#====================== honeyfs - COWRIE EMULATED FILESYSTEM =========================#
+# ====================== honeyfs - COWRIE EMULATED FILESYSTEM =========================#
 
 ##################### pre-login banner ##########################
 # The following function below replaces the  identified operating system in the directory honeyfs/etc/issue.net file
@@ -407,16 +600,34 @@ def issue(cowrie_install_dir):
         issue = issue_file.read()
         issue_file.seek(0)
         issue_file.write(issue.replace("Debian GNU/Linux 7",
-                         random.choice(operatingsystem)))
+                         SYSTEM_PROFILE["os_pretty_name"]))
         issue_file.truncate()
         issue_file.close()
 
 
 ##################### post-login banner ##########################
 # The following function below replaces the  message of the day in the directory honeyfs/etc/motd file
-# TODO
 def motd(cowrie_install_dir):
-    return 0
+    print("Changing motd.")
+    motd_path = f"{cowrie_install_dir}/honeyfs/etc/motd"
+
+    motd_text = f"""
+ ________________________________________________________________________
+|                                                                        |
+| UNAUTHORIZED ACCESS TO THIS SYSTEM IS PROHIBITED.                      |       
+| All activities performed on this system are logged and monitored.      |
+|________________________________________________________________________|
+
+Welcome to {SYSTEM_PROFILE['hostname']}
+
+Operating system: {SYSTEM_PROFILE['os_pretty_name']}                   
+Kernel: {SYSTEM_PROFILE['uname']}
+Architecture: {SYSTEM_PROFILE['arch']}
+
+"""
+
+    with open(motd_path, "w") as motd_file:
+        motd_file.write(motd_text)
 
 
 # The function below replaces the  default user phil  with a selection of other usernames randomly chosen in the script.
@@ -541,21 +752,63 @@ def home_dirs(cowrie_install_dir):
 # The os-release file contains information about the operating system being simulated by the honeypot
 def os_release(cowrie_install_dir):
     print('Creating os-release file.')
-    if not os.path.isfile("{0}{1}".format(cowrie_install_dir, "/honeyfs/etc/os-release")):
-        with open("{0}{1}".format(cowrie_install_dir, "/honeyfs/etc/os-release"), "w") as os_release_file:
-            os_release_contents = '''
+    path = f"{cowrie_install_dir}/honeyfs/etc/os-release"
+
+    if os.path.isfile(path):
+        return  # already exists, do nothing
+
+    # e.g. "Ubuntu 18.04 LTS"
+    os_pretty = SYSTEM_PROFILE["os_pretty_name"]
+    os_key = SYSTEM_PROFILE["os_key"]                 # e.g. "ubuntu-1804"
+
+    # -----------------------------
+    #  Build correct os-release
+    # -----------------------------
+    if os_key.startswith("ubuntu"):
+        # Extract version ID ("18.04") from the pretty name
+        version_id = os_pretty.split()[1]   # e.g. "18.04"
+
+        os_release_contents = f'''
 NAME="Ubuntu"
-VERSION="20.04.4 LTS (Focal Fossa)"
+VERSION="{os_pretty}"
 ID=ubuntu
 ID_LIKE=debian
-PRETTY_NAME="Ubuntu 20.04.4 LTS"
-VERSION_ID="20.04"
+PRETTY_NAME="{os_pretty}"
+VERSION_ID="{version_id}"
 HOME_URL="https://www.ubuntu.com/"
 SUPPORT_URL="https://help.ubuntu.com/"
 BUG_REPORT_URL="https://bugs.launchpad.net/ubuntu/"
 '''
-            os_release_file.write(os_release_contents.strip())
-            os_release_file.close()
+
+    elif os_key.startswith("debian"):
+        # Extract version ID ("7.11", "8.11")
+        version_id = os_pretty.split()[1]   # e.g. "8.11"
+
+        os_release_contents = f'''
+NAME="Debian GNU/Linux"
+VERSION="{os_pretty}"
+ID=debian
+ID_LIKE=debian
+PRETTY_NAME="{os_pretty}"
+VERSION_ID="{version_id}"
+HOME_URL="https://www.debian.org/"
+SUPPORT_URL="https://www.debian.org/support"
+BUG_REPORT_URL="https://bugs.debian.org/"
+'''
+
+    else:
+        # fallback if new OS types ever get added
+        os_release_contents = f'''
+NAME="{os_pretty}"
+PRETTY_NAME="{os_pretty}"
+VERSION="{os_pretty}"
+'''
+
+    # -----------------------------
+    #   Write the file
+    # -----------------------------
+    with open(path, "w") as os_release_file:
+        os_release_file.write(os_release_contents.strip() + "\n")
 
 
 # The following function below replaces the  default hostname in the directory honeyfs/etc/hosts from "nas3" to any of the hostnames in the 'hostnames' array
@@ -564,7 +817,7 @@ def hosts(cowrie_install_dir):
     with open("{0}{1}".format(cowrie_install_dir, "/honeyfs/etc/hosts"), "r+") as host_file:
         hosts = host_file.read()
         host_file.seek(0)
-        host_file.write(hosts.replace("nas3", hostname))
+        host_file.write(hosts.replace("nas3", SYSTEM_PROFILE["hostname"]))
         host_file.truncate()
         host_file.close()
 
@@ -575,7 +828,8 @@ def hostname_py(cowrie_install_dir):
     with open("{0}{1}".format(cowrie_install_dir, "/honeyfs/etc/hostname"), "r+") as hostname_file:
         hostname_contents = hostname_file.read()
         hostname_file.seek(0)
-        hostname_file.write(hostname_contents.replace("svr04", hostname))
+        hostname_file.write(hostname_contents.replace(
+            "svr04", SYSTEM_PROFILE["hostname"]))
         hostname_file.truncate()
         hostname_file.close()
 
@@ -595,7 +849,7 @@ def fs_pickle(cowrie_install_dir):
         pass
     os.system(
         "{0}/bin/createfs -l {0}/honeyfs -o {0}/share/cowrie/fs.pickle".format(cowrie_install_dir))
-    
+
 
 # The following function below creates believable files in the home directory of the ubuntu user inside the honeyfs/home/ubuntu directory.
 # It creates the .bash_history, .profile and .ssh/authorized_keys files with believable content.
@@ -661,13 +915,7 @@ fi
     print(f"Created ubuntu fake home directory at {honeyfs_path}")
 
 
-
-
-
-
-
-
-#====================== commands/xxx.py - COWRIE COMMANDS =========================#
+# ====================== commands/xxx.py - COWRIE COMMANDS =========================#
 
 # Within the Cowrie source code, the base_py() function changes a command in the cowrie/src/commands/base/py script.
 # It contains many commands, particularly the 'ps' comand, which is emulated in the honeypot
@@ -786,7 +1034,7 @@ def free_py(cowrie_install_dir):
 # In particular, it changes the  the MAC address in the directory cowrie/honeyfs/proc/net/arp which is related to the  generate_mac() and getoui() functions.
 # It picks from an array of MAC addresses and writes it to  the ifconfig command and arp file
 # By default, Cowrie assigns a fake MAC address by using using the randint (0,255) several times.
-    # This was replaced with a string containing a legitimate MAC from the generate_mac() function.
+# # This was replaced with a string containing a legitimate MAC from the generate_mac() function.
 def ifconfig_py(cowrie_install_dir):
     print("Editing ifconfig and arp file.")
     mac_addresses = generate_mac()
@@ -840,7 +1088,7 @@ def version_uname(cowrie_install_dir):
     print('Changing uname and version.')
     # Open the version file.
     with open("{0}{1}".format(cowrie_install_dir, "/honeyfs/proc/version"), "w") as version_file:
-        version_file.write(version)  # Write the version name to it.
+        version_file.write(SYSTEM_PROFILE["proc_version"])
         version_file.close()
 
 
@@ -960,31 +1208,6 @@ def cpuinfo(cowrie_install_dir):
         cpuinfo_file.close()
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 # The following function below  executes the installations one at a time
 # In the events of an error, it will prompt a message to check the file path and try again
 
@@ -1044,7 +1267,7 @@ SSH Version: {4}
 SSH Listen Port: {5}
 Internal IP: {6}
 
-""".format(users, password, hostname, version, sshversion, "2222", ip_address)
+""".format(users, password, SYSTEM_PROFILE["hostname"], SYSTEM_PROFILE["os_pretty_name"], SYSTEM_PROFILE["ssh_version"], "2222", ip_address)
 
 if __name__ == "__main__":
     parser = OptionParser(
