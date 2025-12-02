@@ -32,12 +32,7 @@ usernames = ['admin', 'support', 'guest',
 passwords = ['system', 'enable', 'password',
              'shell', 'root', 'support', 'toor', '123456']
 services = ['syslog', 'mongodb', 'statd', 'pulse']
-operatingsystem = ['Ubuntu 14.04.5 LTS',
-                   'Ubuntu 16.04 LTS',
-                   'Ubuntu 18.04 LTS',
-                   'Ubuntu 20.04 LTS',
-                   'Debian 7.11',
-                   'Debian 8.11']
+
 hostnames = ['web', 'db', 'nas', 'dev', 'backups', 'dmz']
 hostnames_suffixes = ['0a', '-01', '-srv', '-01a', '01', '001']
 
@@ -136,10 +131,12 @@ OS_PROFILES = {
             "ubuntu-1404-4.4.0-62",
         ],
         "ssh_versions": [
-            'SSH-2.0-OpenSSH_6.6.1p1 Ubuntu-2ubuntu2.13',
-            'SSH-2.0-OpenSSH_5.3p1 Debian-3ubuntu6',
-            'SSH-2.0-OpenSSH_5.5p1 Debian-6+squeeze2',
+            "SSH-2.0-OpenSSH_6.6.1p1 Ubuntu-2ubuntu2.13",
+            "SSH-2.0-OpenSSH_5.3p1 Debian-3ubuntu6",
+            "SSH-2.0-OpenSSH_5.5p1 Debian-6+squeeze2",
         ],
+        "openssl_version": "OpenSSL 1.0.1f",
+        "openssl_date": "06 Jan 2014",
         "arch_choices": ["linux-x64-lsb", "linux-x86-lsb"],
     },
 
@@ -151,11 +148,13 @@ OS_PROFILES = {
             "ubuntu-1404-4.4.0-62",
         ],
         "ssh_versions": [
-            'SSH-2.0-OpenSSH_6.6.1p1 Ubuntu-2ubuntu2.13',
-            'SSH-2.0-OpenSSH_7.4',
-            'SSH-2.0-OpenSSH_8.0',
-            'OpenSSH_7.4p1 Ubuntu-10ubuntu2.10',
+            "SSH-2.0-OpenSSH_6.6.1p1 Ubuntu-2ubuntu2.13",
+            "SSH-2.0-OpenSSH_7.4",
+            "SSH-2.0-OpenSSH_8.0",
+            "OpenSSH_7.4p1 Ubuntu-10ubuntu2.10",
         ],
+        "openssl_version": "OpenSSL 1.0.2g",
+        "openssl_date": "01 Mar 2016",
         "arch_choices": ["linux-x64-lsb"],
     },
 
@@ -166,10 +165,12 @@ OS_PROFILES = {
             "ubuntu-1404-4.4.0-62",
         ],
         "ssh_versions": [
-            'SSH-2.0-OpenSSH_7.4',
-            'SSH-2.0-OpenSSH_8.0',
-            'OpenSSH_7.4p1 Ubuntu-10ubuntu2.10',
+            "SSH-2.0-OpenSSH_7.4",
+            "SSH-2.0-OpenSSH_8.0",
+            "OpenSSH_7.4p1 Ubuntu-10ubuntu2.10",
         ],
+        "openssl_version": "OpenSSL 1.1.0g",
+        "openssl_date": "02 Nov 2017",
         "arch_choices": ["linux-x64-lsb"],
     },
 
@@ -180,10 +181,12 @@ OS_PROFILES = {
             "ubuntu-1404-4.4.0-62",
         ],
         "ssh_versions": [
-            'SSH-2.0-OpenSSH_7.4',
-            'SSH-2.0-OpenSSH_8.0',
-            'OpenSSH_7.4p1 Ubuntu-10ubuntu2.10',
+            "SSH-2.0-OpenSSH_7.4",
+            "SSH-2.0-OpenSSH_8.0",
+            "OpenSSH_7.4p1 Ubuntu-10ubuntu2.10",
         ],
+        "openssl_version": "OpenSSL 1.1.1f",
+        "openssl_date": "31 Mar 2020",
         "arch_choices": ["linux-x64-lsb"],
     },
 
@@ -194,10 +197,12 @@ OS_PROFILES = {
             "debian-4.6.0-nix",
         ],
         "ssh_versions": [
-            'SSH-2.0-OpenSSH_5.1p1 Debian-5',
-            'SSH-1.99-OpenSSH_4.7',
-            'SSH-2.0-OpenSSH_6.0p1 Debian-4+deb7u1',
+            "SSH-2.0-OpenSSH_5.1p1 Debian-5",
+            "SSH-1.99-OpenSSH_4.7",
+            "SSH-2.0-OpenSSH_6.0p1 Debian-4+deb7u1",
         ],
+        "openssl_version": "OpenSSL 0.9.8zg",
+        "openssl_date": "10 Jun 2015",
         "arch_choices": ["linux-x64-lsb", "linux-x86-lsb"],
     },
 
@@ -207,22 +212,14 @@ OS_PROFILES = {
             "debian-4.6.0-nix",
         ],
         "ssh_versions": [
-            'SSH-2.0-OpenSSH_6.0p1 Debian-4+deb7u1',
-            'SSH-2.0-OpenSSH_6.6.1p1 Ubuntu-2ubuntu2.13',
+            "SSH-2.0-OpenSSH_6.0p1 Debian-4+deb7u1",
+            "SSH-2.0-OpenSSH_6.6.1p1 Ubuntu-2ubuntu2.13",
         ],
+        "openssl_version": "OpenSSL 1.0.1t",
+        "openssl_date": "03 May 2016",
         "arch_choices": ["linux-x64-lsb"],
     },
 }
-
-
-# kbs = ["#1 SMP Red Hat 4.4.6-4",
-#    "#55~14.04.1-Ubuntu SMP",
-#    "#1 SMP Debian 4.6.4-1nix1",
-#    "#155-Ubuntu SMP"]
-# kernel_build_string = random.choice(kbs)
-
-
-# version, uname = random.choice(list(nix_versions.items()))
 
 processors = ['Intel(R) Core(TM) i7-2960XM CPU @ 2.70GHz', 'Intel(R) Core(TM) i5-4590S CPU @ 3.00GHz',
               'Intel(R) Core(TM) i3-4005U CPU @ 1.70GHz']
@@ -257,27 +254,7 @@ ps_aux_usr = ['/sbin/dhclient', '/sbin/getty', '/usr/lib/gvfs/gvfs-afc-volume-mo
               '/usr/sbin/irqbalance', '/usr/sbin/kerneloops', '/usr/sbin/ModemManager', '/usr/sbin/pcscd',
               '/usr/sbin/pptpd']
 
-'''
-ssh_ver = ['SSH-2.0-OpenSSH_5.1p1 Debian-5',
-           'SSH-1.99-OpenSSH_4.3',
-           'SSH-1.99-OpenSSH_4.7',
-           'SSH-2.0-OpenSSH_5.1p1 FreeBSD-20080901',
-           'SSH-2.0-OpenSSH_5.3p1 Debian-3ubuntu6',
-           'SSH-2.0-OpenSSH_5.5p1 Debian-6+squeeze2',
-           'SSH-2.0-OpenSSH_6.0p1 Debian-4+deb7u1',
-           'SSH-2.0-OpenSSH_6.6.1p1 Ubuntu-2ubuntu2.13',
-           'SSH-2.0-OpenSSH_7.4',
-           'SSH-2.0-OpenSSH_8.0',
-           'OpenSSH_7.4p1 Ubuntu-10ubuntu2.10']
-arch = ["bsd-aarch64-lsb", "bsd-aarch64-msb", "bsd-bfin-msb", "bsd-mips64-lsb", "bsd-mips64-msb",
-        "bsd-mips-lsb", "bsd-mips-msb", "bsd-powepc64-lsb", "bsd-powepc-msb", "bsd-riscv64-lsb", "bsd-sparc64-msb", "bsd-sparc-msb", "bsd-x32-lsb", "bsd-x64-lsb", "linux-aarch64-lsb",
-        "linux-aarch64-msb", "linux-alpha-lsb", "linux-am33-lsb", "linux-arc-lsb", "linux-arc-msb", "linux-arm-lsb", "linux-arm-msb", "linux-avr32-lsb", "linux-bfin-lsb", "linux-c6x-lsb",
-        "linux-c6x-msb", "linux-cris-lsb", "linux-frv-msb", "linux-h8300-msb", "linux-hppa64-msb", "linux-hppa-msb", "linux-ia64-lsb", "linux-m32r-msb", "linux-m68k-msb",
-        "linux-microblaze-msb", "linux-mips64-lsb", "linux-mips64-msb", "linux-mips-lsb", "linux-mips-msb", "linux-mn10300-lsb", "linux-nios-lsb", "linux-nios-msb", "linux-powerpc64-lsb",
-        "linux-powerpc64-msb", "linux-powerpc-lsb", "linux-powerpc-msb", "linux-riscv64-lsb", "linux-s390x-msb", "linux-sh-lsb", "linux-sh-msb", "linux-sparc64-msb", "linux-sparc-msb",
-        "linux-tilegx64-lsb", "linux-tilegx64-msb", "linux-tilegx-lsb", "linux-tilegx-msb", "linux-x64-lsb", "linux-x86-lsb", "linux-xtensa-msb", "osx-x32-lsb", "osx-x64-lsb"]
-'''
-# sshversion = random.choice(ssh_ver)
+
 user_count = random.randint(1, 3)
 users = []
 password = []
@@ -339,6 +316,8 @@ def make_system_profile():
         "uname": kernel_info["uname_template"].format(hostname=hostname),
         "arch": arch,
         "ssh_version": ssh_version,
+        "openssl_version": os_profile["openssl_version"],
+        "openssl_date": os_profile["openssl_date"],
     }
 
     return system_profile
@@ -436,20 +415,27 @@ def cowrie_cfg(cowrie_install_dir):
     if not os.path.isfile("{0}{1}".format(cowrie_install_dir, "/etc/cowrie.cfg")):
         shutil.copyfile("{0}{1}".format(cowrie_install_dir, "/etc/cowrie.cfg.dist"),
                         "{0}{1}".format(cowrie_install_dir, "/etc/cowrie.cfg"))
+
     with open("{0}{1}".format(cowrie_install_dir, "/etc/cowrie.cfg"), "r+") as cowrie_cfg:
         cowrie_config = cowrie_cfg.read()
         cowrie_cfg.seek(0)
         refunc = "(?<=version ).*?(?= \()"
         proc_version = SYSTEM_PROFILE["proc_version"]
         uname_kernel = re.findall(refunc, proc_version)
+        ssh_v_output = f"{SYSTEM_PROFILE['ssh_version']}, {SYSTEM_PROFILE['openssl_version']}  {SYSTEM_PROFILE['openssl_date']}"
         replacements = {
-            "svr04": SYSTEM_PROFILE["hostname"],
+            "hostname = svr04": "hostname = {0}".format(SYSTEM_PROFILE["hostname"]),
             "#fake_addr = 192.168.66.254": "fake_addr = {0}".format(ip_address),
             "version = SSH-2.0-OpenSSH_6.0p1 Debian-4+deb7u2": "version = {0}".format(SYSTEM_PROFILE["ssh_version"]),
             "#listen_port = 2222": "listen_port = 2222",
             "tcp:2222": "tcp:2222",
             "kernel_version = 3.2.0-4-amd64": "kernel_version = {0}".format(uname_kernel[0]),
-            "kernel_build_string = #1 SMP Debian 3.2.68-1+deb7u1": "kernel_build_string = {0}".format(SYSTEM_PROFILE["kernel_build_string"])}
+            "kernel_build_string = #1 SMP Debian 3.2.68-1+deb7u1": "kernel_build_string = {0}".format(SYSTEM_PROFILE["kernel_build_string"]),
+            "ssh_version = OpenSSH_7.9p1, OpenSSL 1.1.1a  20 Nov 2018": f"ssh_version = {ssh_v_output}",
+            "macs = hmac-sha2-512,hmac-sha2-384,hmac-sha2-256,hmac-sha1,hmac-md5 ": "macs = hmac-sha2-512,hmac-sha2-384,hmac-sha2-256,umac-64@openssh.com,hmac-sha2-512-etm@openssh.com",
+            "compression = zlib@openssh.com,zlib,none ": "compression = zlib@openssh.com,none",
+            "ciphers = aes128-ctr,aes192-ctr,aes256-ctr,aes256-cbc,aes192-cbc,aes128-cbc,3des-cbc,cast128-cbc ": "ciphers = aes128-ctr,aes192-ctr,aes256-ctr,chacha20-poly1305@openssh.com,aes256-gcm@openssh.com"
+        }
         substrs = sorted(replacements, key=len, reverse=True)
         regexp = re.compile('|'.join(map(re.escape, substrs)))
         config_update = regexp.sub(
@@ -834,6 +820,38 @@ def hostname_py(cowrie_install_dir):
         hostname_file.close()
 
 
+# The following function below empties the inittab file located in the directory honeyfs/etc/inittab
+def inittab(cowrie_install_dir):
+    print('Emptying inittab.')
+    inittab_path = f"{cowrie_install_dir}/honeyfs/etc/inittab"
+
+    with open(inittab_path, "r+") as inittab_file:
+        inittab_file.seek(0)
+        inittab_file.truncate()   # clear file contents
+        inittab_file.close()
+
+
+# The following function below adds the nameserver to the resolv.conf file located in the directory honeyfs/etc/resolv.conf
+def set_resolv_conf_nameserver(cowrie_install_dir):
+    print('Updating resolv.conf.')
+    resolv_path = f"{cowrie_install_dir}/honeyfs/etc/resolv.conf"
+
+    with open(resolv_path, "r+") as resolv_file:
+        contents = resolv_file.read()
+        resolv_file.seek(0)
+
+        # Only add if not already present
+        if "nameserver 1.1.1.1" not in contents:
+            if contents.endswith("\n"):
+                contents += "nameserver 1.1.1.1\n"
+            else:
+                contents += "\nnameserver 1.1.1.1\n"
+
+        resolv_file.write(contents)
+        resolv_file.truncate()
+        resolv_file.close()
+
+
 # The following function below  checks whether or not  the fs.pickle file exist in the directory honeyfs/home.
 # If the  file does not exist then the function below creates the "home" directory inside the honeyfs and using the command 'bin/createfs -l../honeyfs -o fs.piickle' to create the pickle file.
 def fs_pickle(cowrie_install_dir):
@@ -1183,7 +1201,7 @@ def mounts(cowrie_install_dir):
 
 
 # The following function replaces the certain values of the cpuinfo file in the  directory cowre/honeyfs/proc.
-#  Values such as model name , vendor, speed and cache size are changed.
+# Values such as model name , vendor, speed and cache size are changed.
 def cpuinfo(cowrie_install_dir):
     print('Replacing CPU Info.')
     with open("{0}{1}".format(cowrie_install_dir, "/honeyfs/proc/cpuinfo"), "r+") as cpuinfo_file:
@@ -1208,9 +1226,72 @@ def cpuinfo(cowrie_install_dir):
         cpuinfo_file.close()
 
 
+# ====================== ssh/transport.py - COWRIE TWISTED OVERWRITE =========================#
+
+#  The following function below  patches the transport.py file located in the cowrie/src/cowrie/ssh directory.
+#  Modifies cowrie/src/cowrie/ssh/transport.py by inserting a supportedKeyExchanges array right after the class definition line.
+def patch_transport_kex(cowrie_install_dir):
+    print("Patching transport.py to add supportedKeyExchanges...")
+
+    transport_path = os.path.join(
+        cowrie_install_dir, "src/cowrie/ssh/transport.py"
+    )
+
+    if not os.path.exists(transport_path):
+        print(f"ERROR: transport.py not found at: {transport_path}")
+        return
+
+    # The block we want to insert
+    kex_block = (
+        "    supportedKeyExchanges = [\n"
+        "        b\"curve25519-sha256\",\n"
+        "        b\"curve25519-sha256@libssh.org\",\n"
+        "        b\"ecdh-sha2-nistp256\",\n"
+        "        b\"ecdh-sha2-nistp384\",\n"
+        "        b\"ecdh-sha2-nistp521\",\n"
+        "        b\"diffie-hellman-group-exchange-sha256\",\n"
+        "        b\"diffie-hellman-group16-sha512\",\n"
+        "        b\"diffie-hellman-group18-sha512\",\n"
+        "        b\"diffie-hellman-group14-sha256\",\n"
+        "        b\"diffie-hellman-group14-sha1\",\n"
+        "    ]\n\n"
+    )
+
+    with open(transport_path, "r+", encoding="utf-8") as f:
+        original = f.read()
+
+        # Check if it's already patched
+        if "supportedKeyExchanges = [" in original:
+            print("supportedKeyExchanges already present. Skipping patch.")
+            return
+
+        # Find class definition line
+        class_def = "class HoneyPotSSHTransport(transport.SSHServerTransport, TimeoutMixin):"
+
+        if class_def not in original:
+            print("ERROR: Could not find class definition!")
+            return
+
+        # Create modified content
+        modified = original.replace(
+            class_def,
+            class_def + "\n" + kex_block.rstrip("\n")
+        )
+
+        # Rewrite file
+        f.seek(0)
+        f.write(modified)
+        f.truncate()
+
+    print("Patch applied successfully.")
+
+
+# ===============================================================#
+# ====================== ALL THE THINGS =========================#
+# ===============================================================#
+
 # The following function below  executes the installations one at a time
 # In the events of an error, it will prompt a message to check the file path and try again
-
 
 def allthethings(cowrie_install_dir):
     try:
