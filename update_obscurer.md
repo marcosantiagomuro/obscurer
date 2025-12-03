@@ -1,37 +1,38 @@
 need to change 
 
 
-ARCH version from cowrie_cfg_dist
+> **DONE** ARCH version from cowrie_cfg_dist  
 
-OS-Release
+> **DONE** OS-Release
 
-src/cowrie/ssh/userauth.py  >> accepts any user
-cowrie/ssh/transport.py  >> connection behaviour >> add some mini random delays 
-cowrie/ssh/keys.py  >> generate host keys via standard ssh-keygen command   (ensure correct format)
-
-
-honeyfs/proc/version >> Unix version
+> **DONE** src/cowrie/ssh/userauth.py  >> added random delay to sending login banner
+> **DONE** cowrie/ssh/transport.py  >> connection behaviour >> added hardcoded KEX algos
 
 
-cowrie/core/honeypot.py >> add some mini random delays 
+> **DONE** cowrie/ssh/keys.py  >> generate host keys via standard ssh-keygen command   (ensure correct format)
 
 
-./share/cowrie/cmdoutput.json >> listing processes
+> **DONE** honeyfs/proc/version >> Unix version
 
 
-most used commands:
-uname -a
-cat /etc/os-release
-ps, w, who
-ifconfig or ip a
-netstat or ss
+> ***no file found***  cowrie/core/honeypot.py >> add some mini random delays 
 
-and ensure these agree on:
-hostname
-OS version
-kernel version / architecture
-active network interfaces and IPs
-running services matching the server “role”
+
+> **TODO** ./share/cowrie/cmdoutput.json >> listing processes
+
+
+
+> **DONE** and ensure these agree on:
+
+> hostname
+
+> OS version
+
+> kernel version / architecture
+
+> active network interfaces and IPs
+
+> **TODO** running services matching the server “role”
 
 
 
@@ -40,40 +41,41 @@ running services matching the server “role”
 CONSISTENCY:
 
 put the same OS version in
-cowrie.cfg
-honeyfs/etc/issue and etc/motd
-hostkey and type and sizes
-/etc/os-release in honeyfs
+> **DONE** cowrie.cfg
+> **DONE** honeyfs/etc/issue and etc/motd
+> **DONE** hostkey and type and sizes
+> **DONE** /etc/os-release in honeyfs
 
+
+>  **DONE**           prompt = f"{self.protocol.user.username}@{self.protocol.hostname}:{cwd}"
 
 
 
 IN COWRIE.CFG
-change idle_timeout
-change authentication_timeout
+> **DONE** change idle_timeout
+> **DONE** change authentication_timeout
 
 
+> **the follwing breaks the system** 
 Add small random delays
-
 in server.py /ssh.py >> session level delays 50ms to 500ms
-
-
 in userauth.py  >> session level delays 50ms to 500ms
-
-
 in shell.py or shell/interact.py >> character delays from 50 ms to 150ms
-
 >> command level delays from 50ms to 800ms   for complex commands outputs
 
 
 
+> **DONE**  logout message
+
+> **DONE** Kernel Build String >> uname -a
+
+**TODO nix** Nix version >> nix --version
+
+Command 'nix' not found, but can be installed with:
+apt install nix-bin
+Please ask your administrator.
 
 
-Kernel Build String >> uname -a
-
-Nix version >> nix --version
-
-debian OS profile / system info >> cat /etc/os-release
 
 
 # ---------------------------------------------------------------------
@@ -151,7 +153,7 @@ Nmap done: 1 IP address (1 host up) scanned in 1.48 seconds
 > cowrie/var/lib/cowrie  the keys are saved there  both private and pub.  Theya re created when cowrie gets installed the first time:
 
 to replace them
-```ssh-keygen -t rsa -b 2048 -f ~/cowrie/var/lib/cowrie/ssh_host_rsa_key -N "" ```
+> 
 ```
 Starting Nmap 7.95 ( https://nmap.org ) at 2025-12-01 10:24 EST
 Nmap scan report for localhost (127.0.0.1)
@@ -351,6 +353,88 @@ round-trip min/avg/max = 1.5/5.3/8.4 ms
 ```
 Linux testserver1 3.2.0-4-amd64 #1 SMP Debian 3.2.68-1+deb7u1 x86_64 GNU/Linux
 ```
+
+
+### ps
+> ??? : always 2 ps with 2 differend in PID
+```
+PID   TTY     TIME  COMMAND                     
+4719  pts/0   0:00  -bash                        
+4721  pts/0   0:00  ps  
+```
+
+### w
+> ??? : always same output
+```
+ 09:36:26 up 3 min,  1 user,  load average: 0.00, 0.00, 0.00
+USER     TTY      FROM              LOGIN@   IDLE   JCPU   PCPU WHAT
+root     pts/0    127.0.0.1         09:33    0.00s  0.00s  0.00s w
+```
+
+### who
+> ??? : always same output
+```
+root     pts/0        2025-12-02 09:33 (127.0.0.1)
+```
+
+### ifconfig
+> ??? : always same output
+```
+eth0      Link encap:Ethernet  HWaddr 80:84:9c:3c:16:a8
+          inet addr:192.168.89.133  Bcast:192.168.89.255  Mask:255.255.255.0
+          inet6 addr: fe12::23b:d6ff:feca:ef01/64 Scope:Link
+          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+          RX packets:479518 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:457312 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:1000
+          RX bytes:348130242 (348.1 MB)  TX bytes:26319969 (26.3 MB)
+
+
+lo        Link encap:Local Loopback
+          inet addr:127.0.0.1  Mask:255.0.0.0
+          inet6 addr: ::1/128 Scope:Host
+          UP LOOPBACK RUNNING  MTU:65536  Metric:1
+          RX packets:110 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:110 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:0
+          RX bytes:24031564 (24.0 MB)  TX bytes:24031564 (24.0 MB)
+```
+
+### ip a
+> command not found
+
+
+### netstat
+> ??? : always same output
+```
+Active Internet connections (w/o servers)
+Proto Recv-Q Send-Q Local Address           Foreign Address         State
+tcp        0    308 testserver1:ssh         localhost:53062         ESTABLISHED
+Active UNIX domain sockets (only servers)
+Proto RefCnt Flags       Type       State         I-Node   Path
+unix  4      [ ]         DGRAM                    7445     /dev/log
+unix  3      [ ]         STREAM     CONNECTED     7323
+unix  3      [ ]         STREAM     CONNECTED     7348     /var/run/dbus/system_bus_socket
+unix  3      [ ]         STREAM     CONNECTED     7330
+unix  2      [ ]         DGRAM                    8966
+unix  3      [ ]         STREAM     CONNECTED     7424     /var/run/dbus/system_bus_socket
+unix  3      [ ]         STREAM     CONNECTED     7140
+unix  3      [ ]         STREAM     CONNECTED     7145     @/com/ubuntu/upstart
+unix  3      [ ]         DGRAM                    7199
+unix  3      [ ]         STREAM     CONNECTED     7347
+unix  3      [ ]         STREAM     CONNECTED     8594
+unix  3      [ ]         STREAM     CONNECTED     7331
+unix  3      [ ]         STREAM     CONNECTED     7364     @/com/ubuntu/upstart
+unix  3      [ ]         STREAM     CONNECTED     7423
+unix  3      [ ]         DGRAM                    7198
+unix  2      [ ]         DGRAM                    9570
+unix  3      [ ]         STREAM     CONNECTED     8619     @/com/ubuntu/upstart
+```
+
+### ss
+> command not found
+
+
 
 
 
