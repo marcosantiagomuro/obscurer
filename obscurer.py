@@ -26,8 +26,6 @@ def rand_hex():
     return '{0}{1}'.format(random.choice('0123456789ABCDEF'), random.choice('0123456789ABCDEF'))
 
 
-def random_int(len):
-    return random.randint()
 
 
 usernames = ['admin', 'support', 'guest',
@@ -310,6 +308,16 @@ def make_system_profile():
     # pick ssh version that fits that OS
     ssh_version = random.choice(os_profile["ssh_versions"])
 
+    proc_version = kernel_info["proc_version"]
+
+    # Derive kernel_build_string from the tail of /proc/version
+    # e.g. "... (GCC) ) #1 SMP Fri Jun 24 15:33:57 MSK 2016"
+    build_idx = proc_version.rfind(") ")
+    if build_idx != -1:
+        kernel_build_string = proc_version[build_idx + 2 :]
+    else:
+        kernel_build_string = proc_version  # fallback
+
     system_profile = {
         "hostname": hostname,
         "os_pretty_name": os_profile["pretty_name"],
@@ -321,6 +329,7 @@ def make_system_profile():
         "ssh_version": ssh_version,
         "openssl_version": os_profile["openssl_version"],
         "openssl_date": os_profile["openssl_date"],
+        "kernel_build_string": kernel_build_string,
     }
 
     return system_profile
@@ -940,118 +949,6 @@ fi
 
 # ====================== commands/xxx.py - COWRIE COMMANDS =========================#
 
-# Within the Cowrie source code, the base_py() function changes a command in the cowrie/src/commands/base/py script.
-# It contains many commands, particularly the 'ps' comand, which is emulated in the honeypot
-# This function is now obsolete however as further review has shown the default base.py script in Cowrie is already obscured enough.
-# def base_py(cowrie_install_dir):
-#     print('Editing base.py')
-#     with open("{0}{1}".format(cowrie_install_dir, "/src/cowrie/commands/base.py"), "r+") as base_file:
-#         user = random.choice(users)
-#         base = base_file.read()
-#         base_file.seek(0)
-#         to_replace = re.findall(
-#             '(?<=output = \(\n)(.*)(?=for i in range)', base, re.DOTALL)
-#         new_base = "            ('USER      ', ' PID', ' %CPU', ' %MEM', '    VSZ', '   RSS', ' TTY      ', 'STAT ', 'START', '   TIME ', 'COMMAND',),\n"
-#         new_base += "            ('{0:<10}', '{1:>4}', '{2:>5}', '{3:>5}', '{4:>7}', '{5:>6}', '{6:<10}', '{7:<5}', '{8:>5}', '{9:>8}', '{10}',),\n".format(
-#             'root', '1', '0.0', '0.0', randint(10000, 25000), randint(
-#                 500, 2500), '?', 'Ss', time.strftime('%b%d'),
-#             '0:00', '/sbin/init')
-#         new_base += "            ('{0:<10}', '{1:>4}', '{2:>5}', '{3:>5}', '{4:>7}', '{5:>6}', '{6:<10}', '{7:<5}', '{8:>5}', '{9:>8}', '{10}',),\n".format(
-#             'root', '2', '0.0', '0.0', '0', '0', '?', 'S', time.strftime('%b%d'), '0:00', '[kthreadd]')
-#         r = randint(15, 30)
-#         sys_pid = 3
-#         while r > 0:
-#             sys_pid = sys_pid + randint(1, 3)
-#             new_base += "            ('{0:<10}', '{1:>4}', '{2:>5}', '{3:>5}', '{4:>7}', '{5:>6}', '{6:<10}', '{7:<5}', '{8:>5}', '{9:>8}', '{10}',),\n".format(
-#                 'root', sys_pid, '0.0', '0.0', '0', '0', '?', random.choice(
-#                     ['S', 'S<']), time.strftime('%b%d'), '0:00',
-#                 random.choice(ps_aux_sys))
-#             r -= 1
-#         t = randint(4, 10)
-#         usr_pid = 1000
-#         while t > 0:
-#             usr_pid = usr_pid + randint(20, 70)
-#             minute = time.strftime('%m')
-#             hour = time.strftime('%')
-#             new_base += "            ('{0:<10}', '{1:>4}', '{2:>5}', '{3:>5}', '{4:>7}', '{5:>6}', '{6:<10}', '{7:<5}', '{8:>5}', '{9:>8}', '{10}',),\n".format(
-#                 random.choice(['root', user]), usr_pid, '{0}.{1}'.format(
-#                     randint(0, 4), randint(0, 9)),
-#                 '{0}.{1}'.format(randint(0, 4), randint(0, 9)), randint(
-#                     10000, 25000), randint(500, 2500),
-#                 '?', random.choice(['S', 'S<', 'S+', 'Sl']), time.strftime('%H:%m'), '0:00', random.choice(ps_aux_usr))
-#             t -= 1
-#         new_base += "            ('{0:<10}', '{1:>4}', '{2:>5}', '{3:>5}', '{4:>7}', '{5:>6}', '{6:<10}', '{7:<5}', '{8:>5}', '{9:>8}', '{10},),\n".format(
-#             'root', usr_pid +
-#             randint(20, 100), '0.{0}'.format(
-#                 randint(0, 9)), '0.{0}'.format(randint(0, 9)),
-#             randint(1000, 6000), randint(
-#                 500, 2500), '?', random.choice(['S', 'S<', 'S+', 'Sl']),
-#             time.strftime('%H:%m'), '0:{0}{1}'.format(0, randint(0, 3)), '/usr/sbin/sshd: %s@pts/0\' % user')
-#         new_base += "            ({0:<10}, '{1:>4}', '{2:>5}', '{3:>5}', '{4:>7}', '{5:>6}', '{6:<10}', '{7:<5}', '{8:>5}', '{9:>8}', '{10}',),\n".format(
-#             '\'%s\'.ljust(8) % user', usr_pid + randint(20,
-#                                                         100), '0.{0}'.format(randint(0, 9)),
-#             '0.{0}'.format(randint(0, 9)), randint(1000, 6000), randint(
-#                     500, 2500), 'pts/{0}'.format(randint(0, 5)),
-#             random.choice(['S', 'S<', 'S+', 'Sl']), time.strftime('%H:%m'),
-#             '0:{0}{1}'.format(0, randint(0, 3)), '-bash')
-#         new_base += "            ({0:<10}, '{1:>4}', '{2:>5}', '{3:>5}', '{4:>7}', '{5:>6}', '{6:<10}', '{7:<5}', '{8:>5}', '{9:>8}', {10},),\n".format(
-#             '\'%s\'.ljust(8) % user', usr_pid + randint(20,
-#                                                         100), '0.{0}'.format(randint(0, 9)),
-#             '0.{0}'.format(randint(0, 9)), randint(1000, 6000), randint(
-#                     500, 2500), 'pts/{0}'.format(randint(0, 5)),
-#             random.choice(['S', 'S<', 'S+', 'Sl']),
-#             time.strftime('%H:%m'), '0:{0}{1}'.format(0, randint(0, 3)), '\'ps %s\' % \' \'.join(self.args)')
-#         new_base += "            )\n        "
-#         base_replacements = {to_replace[0]: new_base}
-#         substrs = sorted(base_replacements, key=len, reverse=True)
-#         regexp = re.compile('|'.join(map(re.escape, substrs)))
-#         base_update = regexp.sub(
-#             lambda match: base_replacements[match.group(0)], base)
-#         base_file.write(base_update)
-#         base_file.truncate()
-#         base_file.close()
-
-
-# The following function below edits the free.py script in the directory cowrie/src/commands within the Cowrie source code.
-# By default, Cowrie  grabs the memory information from the meminfo file located inside the proc directory of the honeyfs
-# The function below shows the memory info rmation about the honeypot based on the meminfo_py() function
-# def free_py(cowrie_install_dir):
-#     print('Editing free.py')
-#     with open("{0}{1}".format(cowrie_install_dir, "/src/cowrie/commands/free.py"), "r+") as free_file:
-#         free = free_file.read()
-#         free_file.seek(0)
-#         total = int(ram_size - ((3 * ram_size) / 100.0))
-#         used_ram = int((randint(50, 75) * ram_size) / 100.0)
-#         free_ram = total - used_ram
-#         shared_ram = ram_size / 48
-#         buffers = ram_size / 36
-#         cached = used_ram - shared_ram - buffers
-#         buffers_cachev1 = used_ram - (buffers + cached)
-#         buffers_cachev2 = used_ram + (buffers + cached)
-#         free_replacements = {
-#             "Mem:          7880       7690        189          0        400       5171": "Mem:          {0}       {1}        {2}          {3}        {4}       {5}".format(
-#                 total, used_ram, free_ram, shared_ram, buffers, cached),
-#             "-/+ buffers/cache:       2118       5761": "-/+ buffers/cache:       {0}       {1}".format(buffers_cachev1,
-#                                                                                                         buffers_cachev2),
-#             "Swap:         3675        129       3546": "Swap:         0        0       0",
-#             "Mem:       8069256    7872920     196336          0     410340    5295748": "Mem:       {0}    {1}     {2}          {3}     {4}    {5}".format(
-#                 total * 1000, used_ram * 1000, free_ram * 1000, shared_ram * 1000, buffers * 1000, cached * 1000),
-#             "-/+ buffers/cache:    2166832    5902424": "-/+ buffers/cache:    {0}    {1}".format(
-#                 buffers_cachev1 * 1000, buffers_cachev2 * 1000),
-#             "Swap:      3764220     133080    3631140": "Swap:      0     0    0".format(),
-#             "Mem:          7.7G       7.5G       189M         0B       400M       5.1G": "Mem:          {0}G       {1}G       {2}M         {3}B       {4}M       {5}G".format(
-#                 total / 1000, round(used_ram / 1000.0, 1), free_ram / 1000, shared_ram, buffers, cached / 1000),
-#             "-/+ buffers/cache:       2.1G       5.6G": "-/+ buffers/cache:       {0}M       {1}G".format(
-#                 round(buffers_cachev1 / 1000.0, 1), round(buffers_cachev2 / 1000.0, 1)),
-#             "Swap:         3.6G       129M       3.5G": "Swap:         0B       0B       0B"}
-#         substrs = sorted(free_replacements, key=len, reverse=True)
-#         regexp = re.compile('|'.join(map(re.escape, substrs)))
-#         free_update = regexp.sub(
-#             lambda match: free_replacements[match.group(0)], free)
-#         free_file.write(free_update)
-#         free_file.truncate()
-#         free_file.close()
-
 
 # The following  function makes changes to the ifconfig.py file in the directory cowrie/src/commands within the Cowrie source code.
 # In particular, it changes the  the MAC address in the directory cowrie/honeyfs/proc/net/arp which is related to the  generate_mac() and getoui() functions.
@@ -1352,7 +1249,8 @@ def generate_host_keys(cowrie_install_dir):
     print("Generating new SSH host keys.")
 
     # Base path where Cowrie stores its SSH host keys
-    keydir = os.path.join(cowrie_install_dir, "var/lib/cowrie")
+    keydir = os.path.join(cowrie_install_dir, "var", "lib", "cowrie")
+    os.makedirs(keydir, exist_ok=True)
 
     # List of (filename, ssh-keygen arguments)
     keys = [
@@ -1434,26 +1332,47 @@ def generate_host_keys(cowrie_install_dir):
 
 def allthethings(cowrie_install_dir):
     try:
-        # base_py(cowrie_install_dir)
-        # free_py(cowrie_install_dir)
+        # --- Low-level system / network artefacts ---
         ifconfig_py(cowrie_install_dir)
         version_uname(cowrie_install_dir)
         meminfo_py(cowrie_install_dir)
         mounts(cowrie_install_dir)
         cpuinfo(cowrie_install_dir)
+
+        # --- Users & authentication ---
         group(cowrie_install_dir)
         passwd(cowrie_install_dir)
         shadow(cowrie_install_dir)
+        userdb(cowrie_install_dir)
+        home_dirs(cowrie_install_dir)            # create /home/<users> in honeyfs
+        generate_host_keys(cowrie_install_dir)   # regenerate SSH host keys
+
+        # Patch SSH auth / transport behaviour
+        add_random_delay_userauth(cowrie_install_dir)
+        transport_py(cowrie_install_dir)
+        protocol_py(cowrie_install_dir)
+        honeypot_py(cowrie_install_dir)
+
+        # --- OS-level files / banners / resolvers ---
         cowrie_cfg(cowrie_install_dir)
         hosts(cowrie_install_dir)
         hostname_py(cowrie_install_dir)
         issue(cowrie_install_dir)
-        userdb(cowrie_install_dir)
+        motd(cowrie_install_dir)
+        os_release(cowrie_install_dir)
+        inittab(cowrie_install_dir)
+        set_resolv_conf_nameserver(cowrie_install_dir)
+
+        # --- Build virtual filesystem LAST so it captures all changes ---
         fs_pickle(cowrie_install_dir)
-    except:
-        e = sys.exc_info()[1]
-        print("\nError: {0}\nCheck file path and try again.".format(e))
+
+        # If you ever uncomment randomize_honeyfs_timestamps, call it here:
+        # randomize_honeyfs_timestamps(cowrie_install_dir)
+
+    except Exception as e:
+        print(f"\nError: {e}\nCheck file path and try again.")
         pass
+
 
 
 header = """\
