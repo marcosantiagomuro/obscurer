@@ -1384,9 +1384,9 @@ def run_step(name, func, cowrie_install_dir):
     sep = "-" * 70
 
     # Header
-    print(sep)
+    print("#==============================================#")
     print(f"now running {name}():")
-    print(sep)
+    print("#==============================================#" + "\n")
 
     try:
         func(cowrie_install_dir)
@@ -1396,9 +1396,15 @@ def run_step(name, func, cowrie_install_dir):
         print("    Skipping this step and continuing...\n")
 
     # Footer
-    print(sep)
-    print(f"finished {name}()")
-    print(sep + "\n \n")
+
+    print(f"""
+
+Finished running: {name}
+[]--------------------------------------------------[]
+ 
+
+""")
+
 
 
 
