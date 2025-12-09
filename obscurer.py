@@ -438,7 +438,7 @@ def cowrie_cfg(cowrie_install_dir):
         ssh_v_output = f"{SYSTEM_PROFILE['ssh_version']}, {SYSTEM_PROFILE['openssl_version']}  {SYSTEM_PROFILE['openssl_date']}"
         replacements = {
             "hostname = svr04": "hostname = {0}".format(SYSTEM_PROFILE["hostname"]),
-            "#fake_addr = 192.168.66.254": "fake_addr = {0}".format(ip_address),
+            "#fake_addr = 192.168.66.254": "#fake_addr = {0}".format(ip_address),   #TODO check what this does
             "version = SSH-2.0-OpenSSH_6.0p1 Debian-4+deb7u2": "version = {0}".format(SYSTEM_PROFILE["ssh_version"]),
             "#listen_port = 2222": "listen_port = 2222",
             "tcp:2222": "tcp:2222",
@@ -1384,10 +1384,12 @@ def run_step(name, func, cowrie_install_dir):
     sep = "-" * 70
 
     # Header
-    print("#==============================================#")
-    print(f"now running {name}():")
-    print("#==============================================#" + "\n")
+    print(f"""
+#==============================================#
+# now running {name}():
+#==============================================#
 
+""")
     try:
         func(cowrie_install_dir)
     except Exception as e:
@@ -1400,11 +1402,10 @@ def run_step(name, func, cowrie_install_dir):
     print(f"""
 
 Finished running: {name}
-[]--------------------------------------------------[]
+--#----#----#----#----#----#----#----#----#----#----#----#----#--
  
 
 """)
-
 
 
 
