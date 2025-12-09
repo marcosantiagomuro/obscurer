@@ -15,6 +15,7 @@ from optparse import OptionParser
 import sys
 import os
 import subprocess
+import traceback 
 import shutil
 #import pickle
 #from cowrie.shell import fs   #uses the same attribute constants as Cowrie
@@ -1166,7 +1167,7 @@ def cpuinfo(cowrie_install_dir):
         cpu_replacements = {"Intel(R) Core(TM)2 Duo CPU     E8200  @ 2.66GHz": processor,
                             ": 23": ": {0}".format(random.randint(60, 69)), ": 2133.304": ": {0}".format(cpu_mhz),
                             ": 10": ": {0}".format(random.randint(10, 25)),
-                            ": 4270.03": ": {0}".format(random.randint(4000.00, 7000.00)),
+                            ": 4270.03": ": {0}".format(random.randint(4000, 7000)),
                             ": 6144 KB": ": {0} KB".format(1024 * random.choice(range(2, 16, 2))),
                             "lahf_lm": " ".join(random.sample(cpu_flags, random.randint(6, 14))),
                             "siblings	: 2": "{0}{1}".format("siblings	: ", no_processors)}
@@ -1373,6 +1374,19 @@ def generate_host_keys(cowrie_install_dir):
 
 #     print("Done. Future ls -la output should show varied, recent timestamps.")
 
+# ====================== RUN STEP WITH ERROR HANDLING =========================#
+
+def run_step(name, func, cowrie_install_dir):
+    """
+    Run a single step (function) and report any error without stopping the script.
+    """
+    try:
+        func(cowrie_install_dir)
+    except Exception as e:
+        tb = traceback.extract_tb(e.__traceback__)[-1]  # last traceback frame
+        print(f"\n[!] Error in {name}() at {tb.filename}:{tb.lineno}: {e}")
+        print("    Skipping this step and continuing...\n")
+
 
 # ===============================================================#
 # ====================== ALL THE THINGS =========================#
@@ -1382,47 +1396,47 @@ def generate_host_keys(cowrie_install_dir):
 # In the events of an error, it will prompt a message to check the file path and try again
 
 def allthethings(cowrie_install_dir):
-    try:
-        # --- Low-level system / network artefacts ---
-        ifconfig_py(cowrie_install_dir)
-        version_uname(cowrie_install_dir)
-        meminfo_py(cowrie_install_dir)
-        mounts(cowrie_install_dir)
-        cpuinfo(cowrie_install_dir)
+    steps = [
+        ("ifconfig_py", ifconfig_py),
+        ("version_uname", version_uname),
+        ("meminfo_py", meminfo_py),
+        ("mounts", mounts),
+        ("cpuinfo", cpuinfo),
 
         # --- Users & authentication ---
-        group(cowrie_install_dir)
-        passwd(cowrie_install_dir)
-        shadow(cowrie_install_dir)
-        userdb(cowrie_install_dir)
-        home_dirs(cowrie_install_dir)            # create /home/<users> in honeyfs
-        generate_host_keys(cowrie_install_dir)   # regenerate SSH host keys
+        ("group", group),
+        ("passwd", passwd),
+        ("shadow", shadow),
+        ("userdb", userdb),
+        ("home_dirs", home_dirs),
+        ("generate_host_keys", generate_host_keys),
 
         # Patch SSH auth / transport behaviour
-        add_random_delay_userauth(cowrie_install_dir)
-        transport_py(cowrie_install_dir)
-        protocol_py(cowrie_install_dir)
-        honeypot_py(cowrie_install_dir)
+        ("add_random_delay_userauth", add_random_delay_userauth),
+        ("transport_py", transport_py),
+        ("protocol_py", protocol_py),
+        ("honeypot_py", honeypot_py),
 
         # --- OS-level files / banners / resolvers ---
-        cowrie_cfg(cowrie_install_dir)
-        hosts(cowrie_install_dir)
-        hostname_py(cowrie_install_dir)
-        issue(cowrie_install_dir)
-        motd(cowrie_install_dir)
-        os_release(cowrie_install_dir)
-        inittab(cowrie_install_dir)
-        set_resolv_conf_nameserver(cowrie_install_dir)
+        ("cowrie_cfg", cowrie_cfg),
+        ("hosts", hosts),
+        ("hostname_py", hostname_py),
+        ("issue", issue),
+        ("motd", motd),
+        ("os_release", os_release),
+        ("inittab", inittab),
+        ("set_resolv_conf_nameserver", set_resolv_conf_nameserver),
 
         # --- Build virtual filesystem LAST so it captures all changes ---
-        fs_pickle(cowrie_install_dir)
+        ("fs_pickle", fs_pickle),
 
-        # If you ever uncomment randomize_honeyfs_timestamps, call it here:
-        # randomize_honeyfs_timestamps(cowrie_install_dir)
+        # If you ever re-enable timestamp randomization, add it here:
+        # ("randomize_honeyfs_timestamps", randomize_honeyfs_timestamps),
+    ]
 
-    except Exception as e:
-        print(f"\nError: {e}\nCheck file path and try again.")
-        pass
+    for name, func in steps:
+        run_step(name, func, cowrie_install_dir)
+
 
 
 
