@@ -1379,13 +1379,27 @@ def generate_host_keys(cowrie_install_dir):
 def run_step(name, func, cowrie_install_dir):
     """
     Run a single step (function) and report any error without stopping the script.
+    Prints nice separators before and after each step.
     """
+    sep = "-" * 70
+
+    # Header
+    print(sep)
+    print(f"now running {name}():")
+    print(sep)
+
     try:
         func(cowrie_install_dir)
     except Exception as e:
         tb = traceback.extract_tb(e.__traceback__)[-1]  # last traceback frame
         print(f"\n[!] Error in {name}() at {tb.filename}:{tb.lineno}: {e}")
         print("    Skipping this step and continuing...\n")
+
+    # Footer
+    print(sep)
+    print(f"finished {name}()")
+    print(sep + "\n \n")
+
 
 
 # ===============================================================#
