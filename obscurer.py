@@ -5,19 +5,19 @@
 
 import urllib.request
 import random
-import crypt
+from passlib.hash import sha512_crypt
 import csv
 import string
 import re
 from random import randint
-import time
+#import time
 from optparse import OptionParser
 import sys
 import os
 import subprocess
 import shutil
-import pickle
-from cowrie.shell import fs  # uses the same attribute constants as Cowrie
+#import pickle
+#from cowrie.shell import fs   #uses the same attribute constants as Cowrie
 
 SCRIPT_VERSION = "1.1.0"
 
@@ -762,13 +762,12 @@ def shadow(cowrie_install_dir):
                        string.digits) for _ in range(8))
         while x <= len(users):  # Using iteration to add users.
             if x == 1:
-                gen_pass = crypt.crypt(password[x-1], "$6$" + salt)
+                gen_pass = sha512_crypt.hash(password[x-1], salt=salt)
                 salt = ''.join(random.choice(
                     string.ascii_lowercase + string.digits) for _ in range(8))
                 new_user = "{0}:{1}:{2}:0:99999:7:::".format(
                     users[x-1], gen_pass, random.randint(16000, 17200))
-                new_root_pass = crypt.crypt("password", "$6$" + salt)
-                # Replace certain strings with new users.
+                new_root_pass = sha512_crypt.hash("password", salt=salt)
                 replacements = {"15800": str(days_since),
                                 "phil:$6$ErqInBoz$FibX212AFnHMvyZdWW87bq5Cm3214CoffqFuUyzz.ZKmZ725zKqSPRRlQ1fGGP02V/WawQWQrDda6YiKERNR61:15800:0:99999:7:::\n": new_user,
                                 "$6$4aOmWdpJ$/kyPOik9rR0kSLyABIYNXgg/UqlWX3c1eIaovOLWphShTGXmuUAMq6iu9DrcQqlVUw3Pirizns4u27w3Ugvb6": new_root_pass}
@@ -777,13 +776,14 @@ def shadow(cowrie_install_dir):
                 shadow_update = regexp.sub(
                     lambda match: replacements[match.group(0)], shadow)
             elif x > 1:
-                gen_pass = crypt.crypt(password[x-1], "$6$" + salt)
+                gen_pass = sha512_crypt.hash(password[x-1], salt=salt)
                 shadow_update += "\n{0}:{1}:{2}:0:99999:7:::".format(
                     users[x-1], gen_pass, random.randint(16000, 17200))
             x = x + 1
         shadow_file.write(shadow_update)
         shadow_file.truncate()
         shadow_file.close()
+
 
 
 # The following function below creates the directories of the user defined above in the directory cowrie/honeyfs/home
