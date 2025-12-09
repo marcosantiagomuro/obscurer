@@ -1027,7 +1027,8 @@ def ifconfig_py(cowrie_install_dir):
         lo_rxtx = randint(10000, 99999)  # Generate random number of bytes
         ifconfig_replacements = {"""HWaddr = \"%02x:%02x:%02x:%02x:%02x:%02x\" % (
     randint(0, 255), randint(0, 255), randint(0, 255), randint(0, 255), randint(0, 255), randint(0, 255))""": '{0}'.format(hwaddrstring),
-                                 "self.protocol.kippoIP": '\"{0}\"'.format(ip_address)}  # Replace string with these values.
+                              #   "self.protocol.kippoIP": '\"{0}\"'.format(ip_address)
+                                 }  # Replace string with these values.
         substrs = sorted(ifconfig_replacements, key=len, reverse=True)
         regexp = re.compile('|'.join(map(re.escape, substrs)))
         ifconfig_update = regexp.sub(
@@ -1041,8 +1042,9 @@ def ifconfig_py(cowrie_install_dir):
         arp = arp_file.read()
         arp_file.seek(0)
         base_ip = '.'.join(ip_address.split('.')[0:3])
-        arp_replacements = {'192.168.1.27': '{0}.{1}'.format(base_ip, random.randint(1, 255)),
-                            '192.168.1.1': '{0}.{1}'.format(base_ip, '1'),
+        arp_replacements = {
+                            #'192.168.1.27': '{0}.{1}'.format(base_ip, random.randint(1, 255)),
+                            #'192.168.1.1': '{0}.{1}'.format(base_ip, '1'),
                             '52:5e:0a:40:43:c8': '{0}'.format(macaddress),
                             # Replace strings with these values.
                             '00:00:5f:00:0b:12': '{0}'.format(macaddress2)}
