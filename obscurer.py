@@ -463,19 +463,70 @@ def cowrie_cfg(cowrie_install_dir):
 
 # ====================== userdb.txt file - USER DATABASE for SSH ACCESS =========================#
 
+def load_credentials_from_csv():
+    """
+    Load SSH usernames/passwords from credentials.csv
+    located in the same directory as this script.
+
+    Expected CSV format:
+        username,password
+        user1,pass1
+        ...
+    """
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    cred_path = os.path.join(script_dir, "credentials.csv")
+
+    if not os.path.isfile(cred_path):
+        raise FileNotFoundError(f"credentials.csv not found at: {cred_path}")
+
+    credentials = []
+    with open(cred_path, newline="") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            username = (row.get("username") or "").strip()
+            password = (row.get("password") or "").strip()
+            if username and password:
+                credentials.append((username, password))
+
+    if not credentials:
+        raise ValueError("No valid credentials found in credentials.csv")
+
+    return credentials
+
+
 # The following function below replaces the  users associated with direcotry etc/userdb.txt  by replacing the  usernames and passwords from the 'usernames' and 'passwords' array.
 def userdb(cowrie_install_dir):
     print('Editing user database, replacing defaults users.')
-    if not os.path.isfile("{0}{1}".format(cowrie_install_dir, "/etc/userdb.txt")):
-        shutil.copyfile("{0}{1}".format(cowrie_install_dir, "/etc/userdb.example"),
-                        "{0}{1}".format(cowrie_install_dir, "/etc/userdb.txt"))
-    # Changed reading to just writing, removing all default values
-    with open("{0}{1}".format(cowrie_install_dir, "/etc/userdb.txt"), "w") as userdb_file:
-        for user in users:
-            for p in password:
-                userdb_file.write("\n{0}:x:{1}".format(user, p))
-        userdb_file.truncate()
-        userdb_file.close()
+
+    userdb_path = f"{cowrie_install_dir}/etc/userdb.txt"
+
+    # Create file if missing
+    if not os.path.isfile(userdb_path):
+        shutil.copyfile(
+            f"{cowrie_install_dir}/etc/userdb.example",
+            userdb_path
+        )
+
+    csv_credentials = []
+    try:
+        csv_credentials = load_credentials_from_csv()
+        if csv_credentials:
+            print(f"Loaded {len(csv_credentials)} credential(s) from credentials.csv")
+    except Exception as e:
+        print(f"No valid credentials.csv found or invalid format. Reason: {e}")
+
+    with open(userdb_path, "w") as userdb_file:
+        if csv_credentials:
+            for username, passwd in csv_credentials:
+                userdb_file.write(f"{username}:x:{passwd}\n")
+            print("Using credentials from credentials.csv for userdb.txt.")
+        else:
+            print("Using default randomly-generated users + passwords.")
+            for user in users:
+                for p in password:
+                    userdb_file.write(f"{user}:x:{p}\n")
+
+    print("userdb.txt updated.")
 
 
 # ====================== userauth.py - COWRIE AUTHENTICATION =========================#
