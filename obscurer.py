@@ -1561,24 +1561,6 @@ header = """
 
 """.format(obscurer_header_art, SCRIPT_VERSION)
 
-usernames_str = ", ".join(ACCEPTED_USERNAMES) if ACCEPTED_USERNAMES else "None"
-passwords_str = ", ".join(ACCEPTED_PASSWORDS) if ACCEPTED_PASSWORDS else "None"
-
-output = """
-
-Cowrie Configuration Updated
-----------------------------
-
-Accepted Username(s): {0}
-Accepted Password(s): {1}
-
-Hostname: {2}
-Operating System: {3}
-SSH Version: {4}
-SSH Listen Port: {5}
-Internal IP: {6}
-
-""".format(usernames_str, passwords_str, SYSTEM_PROFILE["hostname"], SYSTEM_PROFILE["os_pretty_name"], SYSTEM_PROFILE["ssh_version"], "2222", ip_address)
 
 if __name__ == "__main__":
     parser = OptionParser(
@@ -1600,6 +1582,25 @@ if __name__ == "__main__":
         if os.path.isdir(filepath):
             print(header)
             allthethings(args[0])
+            
+            usernames_str = ", ".join(ACCEPTED_USERNAMES) if ACCEPTED_USERNAMES else "None"
+            passwords_str = ", ".join(ACCEPTED_PASSWORDS) if ACCEPTED_PASSWORDS else "None"
+
+            output = """
+
+Cowrie Configuration Updated
+----------------------------
+
+Accepted Username(s): {0}
+Accepted Password(s): {1}
+
+Hostname: {2}
+Operating System: {3}
+SSH Version: {4}
+SSH Listen Port: {5}
+Internal IP: {6}
+
+""".format(usernames_str,passwords_str, SYSTEM_PROFILE["hostname"], SYSTEM_PROFILE["os_pretty_name"], SYSTEM_PROFILE["ssh_version"], "2222", ip_address)
             print(output)
         else:
             print("[!] Incorrect directory path. The path does not exist.")
