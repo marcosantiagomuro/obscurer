@@ -1432,7 +1432,7 @@ def allthethings(cowrie_install_dir):
         ("shadow", shadow),
         ("userdb", userdb),
         ("home_dirs", home_dirs),
-        ("generate_host_keys", generate_host_keys),
+        #("generate_host_keys", generate_host_keys),
 
         # Patch SSH auth / transport behaviour
         ("add_random_delay_userauth", add_random_delay_userauth),
