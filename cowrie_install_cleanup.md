@@ -16,8 +16,7 @@ On **Debian / Ubuntu**:
 
 ```bash
 sudo apt-get update
-sudo apt-get install -y git python3-pip python3-venv libssl-dev libffi-dev \
-build-essential libpython3-dev python3-minimal authbind
+sudo apt-get install git python3-pip python3-venv libssl-dev libffi-dev build-essential libpython3-dev python3-minimal authbind
 ```
 
 If you encounter:

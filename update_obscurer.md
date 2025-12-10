@@ -89,13 +89,14 @@ Please ask your administrator.
 ```
 
 
-# COMMANDS AND RESULTS
+# COMMANDS AND RESULTS (defualt)
 
 ### nc localhost 2222
 > cowrie.cfg file : 
 ```
-version = SSH-2.0-OpenSSH_9.2p1 Debian-2+deb12u3 
+version = SSH-2.0-OpenSSH_6.0p1 Debian-4+deb7u2 
 ```
+
 
 
 ### nmap -sV localhost

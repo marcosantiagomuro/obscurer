@@ -139,7 +139,7 @@ OS_PROFILES = {
         ],
         "openssl_version": "OpenSSL 1.0.1f",
         "openssl_date": "06 Jan 2014",
-        "arch_choices": ["linux-x64-lsb", "linux-x86-lsb"],
+        "arch_choices": ["linux-x86-lsb"],
     },
 
     "ubuntu-1604": {
@@ -157,7 +157,7 @@ OS_PROFILES = {
         ],
         "openssl_version": "OpenSSL 1.0.2g",
         "openssl_date": "01 Mar 2016",
-        "arch_choices": ["linux-x64-lsb"],
+        "arch_choices": ["linux-x86-lsb", "linux-arm-lsb"],
     },
 
     "ubuntu-1804": {
@@ -173,7 +173,7 @@ OS_PROFILES = {
         ],
         "openssl_version": "OpenSSL 1.1.0g",
         "openssl_date": "02 Nov 2017",
-        "arch_choices": ["linux-x64-lsb"],
+        "arch_choices": ["linux-x86-lsb", "linux-aarch64-lsb"],
     },
 
     "ubuntu-2004": {
@@ -189,7 +189,7 @@ OS_PROFILES = {
         ],
         "openssl_version": "OpenSSL 1.1.1f",
         "openssl_date": "31 Mar 2020",
-        "arch_choices": ["linux-x64-lsb"],
+        "arch_choices": ["linux-x86-lsb", "linux-aarch64-lsb"],
     },
 
     "debian-7": {
@@ -205,7 +205,7 @@ OS_PROFILES = {
         ],
         "openssl_version": "OpenSSL 0.9.8zg",
         "openssl_date": "10 Jun 2015",
-        "arch_choices": ["linux-x64-lsb", "linux-x86-lsb"],
+        "arch_choices": ["linux-x86-lsb", "linux-mips-lsb", "linux-powerpc-lsb"],
     },
 
     "debian-8": {
@@ -219,7 +219,7 @@ OS_PROFILES = {
         ],
         "openssl_version": "OpenSSL 1.0.1t",
         "openssl_date": "03 May 2016",
-        "arch_choices": ["linux-x64-lsb"],
+        "arch_choices": ["linux-x86-lsb", "linux-arm-lsb", "linux-mips-lsb"],
     },
 }
 
@@ -338,6 +338,8 @@ def make_system_profile():
 
 SYSTEM_PROFILE = make_system_profile()
 
+ACCEPTED_USERNAMES = []
+ACCEPTED_PASSWORDS = []
 
 # ====================== getting MAC addresses =========================#
 
@@ -423,43 +425,52 @@ def generate_mac():
 # It checks if a copy of the configuraiton exists and  if not then it creatres a copy ofrom the directory etc/cowrie.cfg.dist.
 # The functiones changes the hostnames as well as the fake ip  ip address to another value
 def cowrie_cfg(cowrie_install_dir):
-    print('Editing main configuration.')
+    print('Editing main configuration cowrie.cfg file.')
     # Check if the cowrie.cfg file exists, otherwise, copy it from cowrie.cfg.dist.
-    if not os.path.isfile("{0}{1}".format(cowrie_install_dir, "/etc/cowrie.cfg")):
-        shutil.copyfile("{0}{1}".format(cowrie_install_dir, "/etc/cowrie.cfg.dist"),
-                        "{0}{1}".format(cowrie_install_dir, "/etc/cowrie.cfg"))
+    cfg_path = f"{cowrie_install_dir}/etc/cowrie.cfg"
+    cfg_dist_path = f"{cowrie_install_dir}/etc/cowrie.cfg.dist"
 
-    with open("{0}{1}".format(cowrie_install_dir, "/etc/cowrie.cfg"), "r+") as cowrie_cfg:
+    if not os.path.isfile(cfg_path):
+        shutil.copyfile(cfg_dist_path, cfg_path)
+
+    with open(cfg_path, "r+", encoding="utf-8") as cowrie_cfg:
         cowrie_config = cowrie_cfg.read()
-        cowrie_cfg.seek(0)
-        refunc = "(?<=version ).*?(?= \()"
-        proc_version = SYSTEM_PROFILE["proc_version"]
-        uname_kernel = re.findall(refunc, proc_version)
-        ssh_v_output = f"{SYSTEM_PROFILE['ssh_version']}, {SYSTEM_PROFILE['openssl_version']}  {SYSTEM_PROFILE['openssl_date']}"
-        replacements = {
-            "hostname = svr04": "hostname = {0}".format(SYSTEM_PROFILE["hostname"]),
-            "#fake_addr = 192.168.66.254": "#fake_addr = {0}".format(ip_address),   #TODO check what this does
-            "version = SSH-2.0-OpenSSH_6.0p1 Debian-4+deb7u2": "version = {0}".format(SYSTEM_PROFILE["ssh_version"]),
-            "#listen_port = 2222": "listen_port = 2222",
-            "tcp:2222": "tcp:2222",
-            "kernel_version = 3.2.0-4-amd64": "kernel_version = {0}".format(uname_kernel[0]),
-            "kernel_build_string = #1 SMP Debian 3.2.68-1+deb7u1": "kernel_build_string = {0}".format(SYSTEM_PROFILE["kernel_build_string"]),
-            "ssh_version = OpenSSH_7.9p1, OpenSSL 1.1.1a  20 Nov 2018": f"ssh_version = {ssh_v_output}",
-            "macs = hmac-sha2-512,hmac-sha2-384,hmac-sha2-256,hmac-sha1,hmac-md5 ": "macs = hmac-sha2-512,hmac-sha2-384,hmac-sha2-256,umac-64@openssh.com,hmac-sha2-512-etm@openssh.com",
-            "compression = zlib@openssh.com,zlib,none ": "compression = zlib@openssh.com,none",
-            "ciphers = aes128-ctr,aes192-ctr,aes256-ctr,aes256-cbc,aes192-cbc,aes128-cbc,3des-cbc,cast128-cbc ": "ciphers = aes128-ctr,aes192-ctr,aes256-ctr,chacha20-poly1305@openssh.com,aes256-gcm@openssh.com",
-            "idle_timeout = 180": "idle_timeout = 300",
-            "authentication_timeout = 120": "authentication_timeout = 150",
-        }
-        substrs = sorted(replacements, key=len, reverse=True)
-        regexp = re.compile('|'.join(map(re.escape, substrs)))
-        config_update = regexp.sub(
-            lambda match: replacements[match.group(0)], cowrie_config)
-        cowrie_cfg.close()
-        with open("{0}{1}".format(cowrie_install_dir, "/etc/cowrie.cfg"), "w+") as cowrie_cfg_update:
-            cowrie_cfg_update.write(config_update)
-            cowrie_cfg_update.truncate()
-            cowrie_cfg_update.close()
+
+    # Build values
+    refunc = r"(?<=version ).*?(?= \()"
+    proc_version = SYSTEM_PROFILE["proc_version"]
+    uname_kernel = re.findall(refunc, proc_version)
+    ssh_v_output = f"{SYSTEM_PROFILE['ssh_version']}, {SYSTEM_PROFILE['openssl_version']}  {SYSTEM_PROFILE['openssl_date']}"
+
+    # Map "key" -> "new value"
+    kv_replacements = {
+        "hostname": SYSTEM_PROFILE["hostname"],
+        "fake_addr": ip_address,  # will match "#fake_addr = ..." or "fake_addr = ..."
+        "arch": SYSTEM_PROFILE["arch"],
+        "version": SYSTEM_PROFILE["ssh_version"],
+        "listen_port": "2222",
+        "kernel_version": uname_kernel[0],
+        "kernel_build_string": SYSTEM_PROFILE["kernel_build_string"],
+        "ssh_version": ssh_v_output,
+        "macs": "hmac-sha2-512,hmac-sha2-384,hmac-sha2-256,umac-64@openssh.com,hmac-sha2-512-etm@openssh.com",
+        "compression": "zlib@openssh.com,none",
+        "ciphers": "aes128-ctr,aes192-ctr,aes256-ctr,chacha20-poly1305@openssh.com,aes256-gcm@openssh.com",
+        "idle_timeout": "300",
+        "authentication_timeout": "150",
+    }
+
+    # Inline regex replacement: keep left side (including optional #) and overwrite value
+    for key, value in kv_replacements.items():
+        pattern = rf'^(\s*#?\s*{re.escape(key)}\s*=\s*).*$'
+        cowrie_config = re.sub(
+            pattern,
+            rf'\1{value}',
+            cowrie_config,
+            flags=re.MULTILINE
+        )
+
+    with open(cfg_path, "w", encoding="utf-8") as cowrie_cfg_update:
+        cowrie_cfg_update.write(cowrie_config)
 
 
 # ====================== userdb.txt file - USER DATABASE for SSH ACCESS =========================#
@@ -499,6 +510,10 @@ def load_credentials_from_csv():
 def userdb(cowrie_install_dir):
     print('Editing user database, replacing defaults users.')
 
+    global ACCEPTED_USERNAMES, ACCEPTED_PASSWORDS
+    ACCEPTED_USERNAMES = []
+    ACCEPTED_PASSWORDS = []
+
     userdb_path = f"{cowrie_install_dir}/etc/userdb.txt"
 
     # Create file if missing
@@ -520,12 +535,16 @@ def userdb(cowrie_install_dir):
         if csv_credentials:
             for username, passwd in csv_credentials:
                 userdb_file.write(f"{username}:x:{passwd}\n")
+                ACCEPTED_USERNAMES.append(username)
+                ACCEPTED_PASSWORDS.append(passwd)
             print("Using credentials from credentials.csv for userdb.txt.")
         else:
             print("Using default randomly-generated users + passwords.")
             for user in users:
                 for p in password:
                     userdb_file.write(f"{user}:x:{p}\n")
+                    ACCEPTED_USERNAMES.append(user)
+                    ACCEPTED_PASSWORDS.append(p)
 
     print("userdb.txt updated.")
 
@@ -537,7 +556,7 @@ def userdb(cowrie_install_dir):
 def add_random_delay_userauth(cowrie_install_dir):
     print("Editing userauth.py file to add randomized banner delay.")
 
-    userauth_path = f"{cowrie_install_dir}/src/cowrie/core/userauth.py"
+    userauth_path = f"{cowrie_install_dir}/src/cowrie/ssh/userauth.py"
     backup_path = f"{userauth_path}.backup"
 
     # Make a backup copy if it doesn't exist
@@ -647,14 +666,21 @@ def add_random_delay_userauth(cowrie_install_dir):
 # The following function below replaces the  identified operating system in the directory honeyfs/etc/issue.net file
 # from Debian GNU/Linux 7 to any in the 'operatingsystem' array.
 def issue(cowrie_install_dir):
-    print('Changing issue.')
-    with open("{0}{1}".format(cowrie_install_dir, "/honeyfs/etc/issue"), "r+") as issue_file:
-        issue = issue_file.read()
-        issue_file.seek(0)
-        issue_file.write(issue.replace("Debian GNU/Linux 7",
-                         SYSTEM_PROFILE["os_pretty_name"]))
-        issue_file.truncate()
-        issue_file.close()
+    print('Changing issue and creating issue.net.')
+    issue_path     = f"{cowrie_install_dir}/honeyfs/etc/issue"
+    issue_net_path = f"{cowrie_install_dir}/honeyfs/etc/issue.net"
+    os_name        = SYSTEM_PROFILE["os_pretty_name"]
+
+    # Ensure directory exists
+    os.makedirs(os.path.dirname(issue_path), exist_ok=True)
+    with open(issue_path, "w") as issue_file:
+        issue_file.write(f"{os_name}\n")
+    
+    with open(issue_path, "r") as src, open(issue_net_path, "w") as dst:
+        dst.write(src.read())
+
+    print("issue and issue.net updated.")
+
 
 
 ##################### post-login banner ##########################
@@ -688,32 +714,50 @@ def group(cowrie_install_dir):
     print('Editing group file.')
     y = 0
     num = 1001
+
+    if 'ACCEPTED_USERNAMES' in globals() and ACCEPTED_USERNAMES:
+        # de-duplicate but keep order
+        seen = set()
+        user_list = []
+        for u in ACCEPTED_USERNAMES:
+            if u not in seen:
+                seen.add(u)
+                user_list.append(u)
+    else:
+        user_list = users
+
+    group_path = f"{cowrie_install_dir}/honeyfs/etc/group"
+
     # Open the group file.
-    with open("{0}{1}".format(cowrie_install_dir, "/honeyfs/etc/group"), "r+") as group_file:
+    with open(group_path, "r+") as group_file:
         group = group_file.read()
         group_file.seek(0)
         group_update = ""
-        while y < len(users):  # Using iteration to add users.
+
+        while y < len(user_list):  # Using iteration to add users.
+            username = user_list[y]
             if y == 0:
-                new_user = "{0}:x:{1}:{2}:{3},,,:/home/{4}:/bin/bash".format(users[y], str(num), str(num), users[y],
-                                                                             users[y])
-                # Replace these strings with usernames.
-                replacements = {"phil": users[y], "sudo:x:27:": "{0}{1}".format(
-                    "sudo:x:27:", users[y])}
+                # Replace 'phil' and add first user to sudo group
+                replacements = {
+                    "phil": username,
+                    "sudo:x:27:": f"sudo:x:27:{username}"
+                }
                 substrs = sorted(replacements, key=len, reverse=True)
                 regexp = re.compile('|'.join(map(re.escape, substrs)))
                 group_update = regexp.sub(
-                    lambda match: replacements[match.group(0)], group)
+                    lambda match: replacements[match.group(0)], group
+                )
             elif y == 1:
-                group_update += "{0}:x:{1}:".format(users[y], str(num))
-                num = num + 1
+                group_update += f"{username}:x:{num}:"
+                num += 1
             elif y > 1:
-                group_update += "\n{0}:x:{1}:".format(users[y], str(num))
-                num = num + 1
-            y = y + 1
+                group_update += f"\n{username}:x:{num}:"
+                num += 1
+
+            y += 1
+
         group_file.write(group_update)
         group_file.truncate()
-        group_file.close()
 
 
 # The following function below makes changes to the passwd file in the directory cowrie/honeyfs/etc by replacing the user phil with a selection of random usernames
@@ -721,25 +765,33 @@ def passwd(cowrie_install_dir):
     print('Changing passwd file.')
     y = 1
     num = 1000
+    if 'ACCEPTED_USERNAMES' in globals() and ACCEPTED_USERNAMES:
+        seen = set()
+        user_list = []
+        for u in ACCEPTED_USERNAMES:
+            if u not in seen:
+                seen.add(u)
+                user_list.append(u)
+    else:
+        user_list = users
     # Open the passwd file.
     with open("{0}{1}".format(cowrie_install_dir, "/honeyfs/etc/passwd"), "r+") as passwd_file:
         passwd = passwd_file.read()
         passwd_file.seek(0)
         passwd_update = ""
-        while y <= len(users):  # Using iteration to add users.
+        while y <= len(user_list):  # Using iteration to add users.
             if y == 1:
-                new_user = "{0}:x:{1}:{2}:{3},,,:/home/{4}:/bin/bash".format(users[y-1], str(num), str(num), users[y-1],
-                                                                             users[y-1])
+                new_user = "{0}:x:{1}:{2}:{3},,,:/home/{4}:/bin/bash".format(user_list[y-1], str(num), str(num), user_list[y-1],user_list[y-1])
                 # replace the string with a new user.
                 replacements = {
-                    "phil:x:1000:1000:Phil California,,,:/home/phil:/bin/bash": new_user}
+                    "phil:x:1000:1000:Phil California,,,:/home/phil:/bin/bash": new_user
+                }
                 substrs = sorted(replacements, key=len, reverse=True)
                 regexp = re.compile('|'.join(map(re.escape, substrs)))
                 passwd_update = regexp.sub(
                     lambda match: replacements[match.group(0)], passwd)
             elif y > 1:
-                passwd_update += "{0}:x:{1}:{2}:{3},,,:/home/{4}:/bin/bash\n".format(
-                    users[y-1], str(num), str(num), users[y-1], users[y-1])
+                passwd_update += "{0}:x:{1}:{2}:{3},,,:/home/{4}:/bin/bash\n".format(user_list[y-1], str(num), str(num), user_list[y-1], user_list[y-1])
             y = y + 1
             num = num + 1
         passwd_file.write(passwd_update)
@@ -752,8 +804,21 @@ def shadow(cowrie_install_dir):
     print('Changing shadow file.')
     x = 1
     shadow_update = ""
+    if (
+        'ACCEPTED_USERNAMES' in globals() and ACCEPTED_USERNAMES and
+        'ACCEPTED_PASSWORDS' in globals() and ACCEPTED_PASSWORDS and
+        len(ACCEPTED_USERNAMES) == len(ACCEPTED_PASSWORDS)
+    ):
+        user_list = ACCEPTED_USERNAMES
+        pass_list = ACCEPTED_PASSWORDS
+    else:
+        user_list = users
+        pass_list = password
+
     # Open the shadow file.
-    with open("{0}{1}".format(cowrie_install_dir, "/honeyfs/etc/shadow"), "r+") as shadow_file:
+    shadow_path = f"{cowrie_install_dir}/honeyfs/etc/shadow"
+
+    with open(shadow_path, "r+") as shadow_file:
         shadow = shadow_file.read()
         shadow_file.seek(0)
         shadow_update = ""
@@ -761,26 +826,32 @@ def shadow(cowrie_install_dir):
         # Using a salt to hash the passwords.
         salt = ''.join(random.choice(string.ascii_lowercase +
                        string.digits) for _ in range(8))
-        while x <= len(users):  # Using iteration to add users.
+        while x <= len(user_list):
+            username = user_list[x-1]
+            plain_pass = pass_list[x-1]
             if x == 1:
-                gen_pass = sha512_crypt.hash(password[x-1], salt=salt)
-                salt = ''.join(random.choice(
-                    string.ascii_lowercase + string.digits) for _ in range(8))
-                new_user = "{0}:{1}:{2}:0:99999:7:::".format(
-                    users[x-1], gen_pass, random.randint(16000, 17200))
+                gen_pass = sha512_crypt.hash(plain_pass, salt=salt)
+                salt = ''.join(random.choice(string.ascii_lowercase + string.digits) for _ in range(8))
+
+                new_user = f"{username}:{gen_pass}:{random.randint(16000, 17200)}:0:99999:7:::"
+
                 new_root_pass = sha512_crypt.hash("password", salt=salt)
-                replacements = {"15800": str(days_since),
-                                "phil:$6$ErqInBoz$FibX212AFnHMvyZdWW87bq5Cm3214CoffqFuUyzz.ZKmZ725zKqSPRRlQ1fGGP02V/WawQWQrDda6YiKERNR61:15800:0:99999:7:::\n": new_user,
-                                "$6$4aOmWdpJ$/kyPOik9rR0kSLyABIYNXgg/UqlWX3c1eIaovOLWphShTGXmuUAMq6iu9DrcQqlVUw3Pirizns4u27w3Ugvb6": new_root_pass}
-                substrs = sorted(replacements, key=len, reverse=True)
-                regexp = re.compile('|'.join(map(re.escape, substrs)))
-                shadow_update = regexp.sub(
-                    lambda match: replacements[match.group(0)], shadow)
+
+                replacements = {
+                    "15800": str(days_since),
+                    "phil:$6$ErqInBoz$FibX212AFnHMvyZdWW87bq5Cm3214CoffqFuUyzz.ZKmZ725zKqSPRRlQ1fGGP02V/WawQWQrDda6YiKERNR61:15800:0:99999:7:::\n": new_user,
+                    "$6$4aOmWdpJ$/kyPOik9rR0kSLyABIYNXgg/UqlWX3c1eIaovOLWphShTGXmuUAMq6iu9DrcQqlVUw3Pirizns4u27w3Ugvb6": new_root_pass,
+                }
+
+                regexp = re.compile('|'.join(map(re.escape, sorted(replacements, key=len, reverse=True))))
+                shadow_update = regexp.sub(lambda m: replacements[m.group(0)], shadow)
+
             elif x > 1:
-                gen_pass = sha512_crypt.hash(password[x-1], salt=salt)
-                shadow_update += "\n{0}:{1}:{2}:0:99999:7:::".format(
-                    users[x-1], gen_pass, random.randint(16000, 17200))
+                gen_pass = sha512_crypt.hash(plain_pass, salt=salt)
+                shadow_update += f"\n{username}:{gen_pass}:{random.randint(16000, 17200)}:0:99999:7:::"
+
             x = x + 1
+
         shadow_file.write(shadow_update)
         shadow_file.truncate()
         shadow_file.close()
@@ -789,15 +860,18 @@ def shadow(cowrie_install_dir):
 
 # The following function below creates the directories of the user defined above in the directory cowrie/honeyfs/home
 # After creating them we add belieavle files to each home directory like .bashrc, .profile and .ssh/authorized_keys
-def home_dirs(cowrie_install_dir):
+def home_dirs(cowrie_install_dir):  
     print('Creating home directories.')
-    for user in users:
-        user_home_dir = "{0}{1}{2}{3}".format(
-            cowrie_install_dir, "/honeyfs/home/", user, "/")
+    if ('ACCEPTED_USERNAMES' in globals() and ACCEPTED_USERNAMES):
+        user_list = ACCEPTED_USERNAMES
+    else:
+        user_list = users
+    for user in user_list:
+        user_home_dir = f"{cowrie_install_dir}/honeyfs/home/{user}/"
         if not os.path.exists(user_home_dir):
             os.makedirs(user_home_dir)
         # set up directory structure and files in home dir
-        setup_ubuntu_home(user_home_dir)
+        setup_ubuntu_home(user_home_dir, username=user)
 
 
 # The follwing function below creates in the directory /honeyfs/etc the os-relase file if it does not already exist.
@@ -937,7 +1011,7 @@ def fs_pickle(cowrie_install_dir):
 
 # The following function below creates believable files in the home directory of the ubuntu user inside the honeyfs/home/ubuntu directory.
 # It creates the .bash_history, .profile and .ssh/authorized_keys files with believable content.
-def setup_ubuntu_home(honeyfs_path="honeyfs/home/ubuntu"):
+def setup_ubuntu_home(honeyfs_path="honeyfs/home/ubuntu", username="ubuntu"):
     # Ensure directory structure exists
     ssh_dir = os.path.join(honeyfs_path, ".ssh")
     os.makedirs(ssh_dir, exist_ok=True)
@@ -962,8 +1036,9 @@ journalctl -xe
 sudo reboot
 """
 
-    authorized_keys_content = """ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIC8UjdbiuWeEyPu5xwVuYorI0bmHfH1s7+3NQ0o2hkZL ubuntu@workstation
-ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC0K9adk7HYa8CvnfC/4VZkSN3WISjQqq2ySg9d+pbGfgH3Fbi8B0bn5NyxYQ9X6NxZGmbb70D5dS8YdwCXWFAw2rKMnWKXPc0i/SV6JiSJOHCOeG6heXpdMd0RySOyVJ964tXRBJSO7eayv1brUYS+vQH73SzvYFx8S9txPhKcM0BjwQNL63/Hz0MLTIvJqV0TeqcF1ByG30oovYRhgvUOAJN9DUhUQ1Tq2Pp0e2XK3DPHfiWE6VJwAEb3P63Uz9xaGVZm0ZW+BDwFh1nYz6Rs8QW4k9LGipSbrIbZdh+uTgowj8kTBySByUrQk88UJq6vjJhesC9dE4vR example@laptop
+    # Use username in the comment part to look more coherent
+    authorized_keys_content = f"""ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIC8UjdbiuWeEyPu5xwVuYorI0bmHfH1s7+3NQ0o2hkZL {username}@workstation
+ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC0K9adk7HYa8CvnfC/4VZkSN3WISjQqq2ySg9d+pbGfgH3Fbi8B0bn5NyxYQ9X6NxZGmbb70D5dS8YdwCXWFAw2rKMnWKXPc0i/SV6JiSJOHCOeG6heXpdMd0RySOyVJ964tXRBJSO7eayv1brUYS+vQH73SzvYFx8S9txPhKcM0BjwQNL63/Hz0MLTIvJqV0TeqcF1ByG30oovYRhgvUOAJN9DUhUQ1Tq2Pp0e2XK3DPHfiWE6VJwAEb3P63Uz9xaGVZm0ZW+BDwFh1nYz6Rs8QW4k9LGipSbrIbZdh+uTgowj8kTBySByUrQk88UJq6vjJhesC9dE4vR {username}@laptop
 """
 
     profile_content = """# ~/.profile: executed by the command interpreter for login shells.
@@ -996,7 +1071,7 @@ fi
     with open(profile_path, "w") as f:
         f.write(profile_content)
 
-    print(f"Created ubuntu fake home directory at {honeyfs_path}")
+    print(f"Created fake home directory for {username} at {honeyfs_path}")
 
 
 # ====================== commands/xxx.py - COWRIE COMMANDS =========================#
@@ -1043,6 +1118,7 @@ def ifconfig_py(cowrie_install_dir):
         arp_file.seek(0)
         base_ip = '.'.join(ip_address.split('.')[0:3])
         arp_replacements = {
+                            #TODO check the IPs what they do
                             #'192.168.1.27': '{0}.{1}'.format(base_ip, random.randint(1, 255)),
                             #'192.168.1.1': '{0}.{1}'.format(base_ip, '1'),
                             '52:5e:0a:40:43:c8': '{0}'.format(macaddress),
@@ -1427,15 +1503,15 @@ def allthethings(cowrie_install_dir):
         ("cpuinfo", cpuinfo),
 
         # --- Users & authentication ---
+        ("userdb", userdb),
         ("group", group),
         ("passwd", passwd),
         ("shadow", shadow),
-        ("userdb", userdb),
         ("home_dirs", home_dirs),
         #("generate_host_keys", generate_host_keys),
 
         # Patch SSH auth / transport behaviour
-        ("add_random_delay_userauth", add_random_delay_userauth),
+        #("add_random_delay_userauth", add_random_delay_userauth),
         ("transport_py", transport_py),
         ("protocol_py", protocol_py),
         ("honeypot_py", honeypot_py),
@@ -1462,8 +1538,7 @@ def allthethings(cowrie_install_dir):
 
 
 
-
-header = """\
+obscurer_header_art = r"""
             _
            | |
         __ | |__  ___  ___ _   _ _ __ ___ _ __
@@ -1471,16 +1546,25 @@ header = """\
      | (_) | |_) \__ \ (__| |_| | | |  __/ |
       \___/|_.__/|___/\___|\__,_|_|  \___|_|
       
+"""
+
+header = """
+
+{0}
+
       https://github.com/marcosantiagomuro/obscurer
 
               Cowrie Honeypot Obscurer
-                   Version {0}
+                   Version {1}
 
   Forked from https://github.com/boscutti939/obscurer
 
-""".format(SCRIPT_VERSION)
+""".format(obscurer_header_art, SCRIPT_VERSION)
 
-output = """\
+usernames_str = ", ".join(ACCEPTED_USERNAMES) if ACCEPTED_USERNAMES else "None"
+passwords_str = ", ".join(ACCEPTED_PASSWORDS) if ACCEPTED_PASSWORDS else "None"
+
+output = """
 
 Cowrie Configuration Updated
 ----------------------------
@@ -1494,7 +1578,7 @@ SSH Version: {4}
 SSH Listen Port: {5}
 Internal IP: {6}
 
-""".format(users, password, SYSTEM_PROFILE["hostname"], SYSTEM_PROFILE["os_pretty_name"], SYSTEM_PROFILE["ssh_version"], "2222", ip_address)
+""".format(usernames_str, passwords_str, SYSTEM_PROFILE["hostname"], SYSTEM_PROFILE["os_pretty_name"], SYSTEM_PROFILE["ssh_version"], "2222", ip_address)
 
 if __name__ == "__main__":
     parser = OptionParser(
