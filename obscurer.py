@@ -464,7 +464,7 @@ def cowrie_cfg(cowrie_install_dir):
         pattern = rf'^(\s*#?\s*{re.escape(key)}\s*=\s*).*$'
         cowrie_config = re.sub(
             pattern,
-            rf'\1{value}',
+            lambda m, v=value: m.group(1) + v,
             cowrie_config,
             flags=re.MULTILINE
         )
@@ -867,7 +867,7 @@ def home_dirs(cowrie_install_dir):
     else:
         user_list = users
     for user in user_list:
-        user_home_dir = f"{cowrie_install_dir}/honeyfs/home/{user}/"
+        user_home_dir = f"{cowrie_install_dir}honeyfs/home/{user}/"
         if not os.path.exists(user_home_dir):
             os.makedirs(user_home_dir)
         # set up directory structure and files in home dir
