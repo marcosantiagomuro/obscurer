@@ -315,6 +315,10 @@ Reinstall inside the venv:
 
 
 
+IF COWRIE SERVICE DOESN"TALLOWE THE CONNNECTION
+
+tail -n 50 var/log/cowrie/cowrie.log
+
 
 
 

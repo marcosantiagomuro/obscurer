@@ -452,9 +452,9 @@ def cowrie_cfg(cowrie_install_dir):
         "kernel_version": uname_kernel[0],
         "kernel_build_string": SYSTEM_PROFILE["kernel_build_string"],
         "ssh_version": ssh_v_output,
-        "macs": "hmac-sha2-512,hmac-sha2-384,hmac-sha2-256,umac-64@openssh.com,hmac-sha2-512-etm@openssh.com",
+        "macs": "hmac-sha2-512,hmac-sha2-384,hmac-sha2-256",
         "compression": "zlib@openssh.com,none",
-        "ciphers": "aes128-ctr,aes192-ctr,aes256-ctr,chacha20-poly1305@openssh.com,aes256-gcm@openssh.com",
+        "ciphers": "aes128-ctr,aes192-ctr,aes256-ctr",
         "idle_timeout": "300",
         "authentication_timeout": "150",
     }
