@@ -448,7 +448,7 @@ def cowrie_cfg(cowrie_install_dir):
         "fake_addr": ip_address,  # will match "#fake_addr = ..." or "fake_addr = ..."
         "arch": SYSTEM_PROFILE["arch"],
         "version": SYSTEM_PROFILE["ssh_version"],
-        "listen_port": "2222",
+        "listen_port": "22",
         "kernel_version": uname_kernel[0],
         "kernel_build_string": SYSTEM_PROFILE["kernel_build_string"],
         "ssh_version": ssh_v_output,
@@ -549,116 +549,6 @@ def userdb(cowrie_install_dir):
     print("userdb.txt updated.")
 
 
-# ====================== userauth.py - COWRIE AUTHENTICATION =========================#
-
-# The following changes below are made to the userauth.py file located in cowrie/ssh/userauth.py
-# The changes will introduce randomised accepatble delays to Cowrie's userauth.py sendBanner() function
-def add_random_delay_userauth(cowrie_install_dir):
-    print("Editing userauth.py file to add randomized banner delay.")
-
-    userauth_path = f"{cowrie_install_dir}/src/cowrie/ssh/userauth.py"
-    backup_path = f"{userauth_path}.backup"
-
-    # Make a backup copy if it doesn't exist
-    if not os.path.isfile(backup_path):
-        shutil.copyfile(userauth_path, backup_path)
-        print("Backup created:", backup_path)
-
-    # Read the original content
-    with open(userauth_path, "r") as f:
-        data = f.read()
-
-    # ------------------------------------------------------------------
-    # 1. Ensure required imports exist: random, reactor
-    # ------------------------------------------------------------------
-    if "import random" not in data:
-        data = data.replace(
-            "import struct",
-            "import struct\nimport random"
-        )
-
-    if "from twisted.internet import reactor" not in data:
-        data = data.replace(
-            "from twisted.internet import defer",
-            "from twisted.internet import defer\nfrom twisted.internet import reactor"
-        )
-
-    # ------------------------------------------------------------------
-    # 2. Replace the existing sendBanner() with a delayed version
-    # ------------------------------------------------------------------
-    new_sendbanner = """
-    def sendBanner(self):
-        \"\"\"
-        Modified sendBanner() that introduces a randomized delay using
-        Twisted reactor.callLater() before sending the pre-login banner.
-        \"\"\"
-        if self.bannerSent:
-            return
-        self.bannerSent = True
-
-        # Random delay (0.2s - 1.4s)
-        delay = random.uniform(
-            CowrieConfig.getfloat("ssh", "banner_delay_min", fallback=0.15),
-            CowrieConfig.getfloat("ssh", "banner_delay_max", fallback=0.700),
-        )
-
-        # Schedule actual sending
-        reactor.callLater(delay, self._sendBannerNow)
-    
-
-    def _sendBannerNow(self):
-        \"\"\"
-        Actual banner-sending code moved here so sendBanner() can delay it.
-        \"\"\"
-        if not getattr(self, "transport", None):
-            return
-
-        try:
-            with open(
-                "{}/etc/issue.net".format(
-                    CowrieConfig.get("honeypot", "contents_path")
-                ),
-                encoding="ascii",
-            ) as f:
-                banner = f.read()
-        except configparser.Error as e:
-            log.msg(f"Loading default /etc/issue.net file: {e!r}")
-            resources_path = importlib.resources.files(data)
-            banner_path = resources_path.joinpath("honeyfs", "etc", "issue.net")
-            banner = banner_path.read_text(encoding="utf-8")
-        except OSError as e:
-            log.err(e, "ERROR: Failed to load /etc/issue.net")
-            return
-
-        if not banner or not banner.strip():
-            return
-
-        try:
-            self.transport.sendPacket(
-                userauth.MSG_USERAUTH_BANNER,
-                NS(banner) + NS(b"en"),
-            )
-        except Exception as e:
-            log.err(e, "ERROR: Failed to send banner packet")
-"""
-
-    # Replace old sendBanner (naive but safe string match)
-    if "def sendBanner" in data:
-        start = data.index("def sendBanner")
-        # crude but works: cut until next "def "
-        end = data.find("\n    def ", start + 5)
-        if end == -1:
-            end = len(data)
-        data = data[:start] + new_sendbanner + data[end:]
-
-    # ------------------------------------------------------------------
-    # 3. Write updated file
-    # ------------------------------------------------------------------
-    with open(userauth_path, "w") as f:
-        f.write(data)
-
-    print("Randomized delay successfully added to userauth.py")
-
 
 # ====================== honeyfs - COWRIE EMULATED FILESYSTEM =========================#
 
@@ -701,6 +591,9 @@ Welcome to {SYSTEM_PROFILE['hostname']}
 Operating system: {SYSTEM_PROFILE['os_pretty_name']}                   
 Kernel: {SYSTEM_PROFILE['uname']}
 Architecture: {SYSTEM_PROFILE['arch']}
+
+ * Documentation:  https://help.ubuntu.com
+ * Support:        https://ubuntu.com/pro
 
 """
 
@@ -1406,54 +1299,6 @@ def generate_host_keys(cowrie_install_dir):
         print(f"Created {filename} and {filename}.pub")
 
 
-
-# ====================== honeyfs/fs.pickle - RANDOMIZE TIMESTAMPS =========================#
-
-# The following function below randomizes the file modification times (mtimes) of files in the honeyfs directory
-# and updates the corresponding metadata in the fs.pickle file to reflect these changes.
-# def randomize_honeyfs_timestamps(cowrie_install_dir):
-#     print("Randomizing honeyfs timestamps and updating fs.pickle...")
-
-#     honeyfs_dir = os.path.join(cowrie_install_dir, "honeyfs")
-#     pickle_path = os.path.join(cowrie_install_dir, "var", "lib", "cowrie", "fs.pickle")
-
-#     # Choose a time window (for example: between 1 and 90 days ago)
-#     now = time.time()
-#     oldest = now - 90 * 24 * 60 * 60  # 90 days ago
-
-#     # 1) Update real file mtimes in honeyfs
-#     print(f"  * Updating real files under: {honeyfs_dir}")
-#     for root, dirs, files in os.walk(honeyfs_dir):
-#         for name in dirs + files:
-#             full = os.path.join(root, name)
-#             # skip symlinks so we don't accidentally touch targets
-#             if os.path.islink(full):
-#                 continue
-#             new_time = random.uniform(oldest, now)
-#             try:
-#                 os.utime(full, (new_time, new_time))
-#             except OSError:
-#                 # ignore files we cannot touch
-#                 pass
-
-#     # 2) Update virtual filesystem metadata in fs.pickle
-#     print(f"  * Updating virtual filesystem pickle: {pickle_path}")
-#     with open(pickle_path, "rb") as f:
-#         vfs = pickle.load(f)
-
-#     for path, meta in vfs.items():
-#         # meta is a dict keyed by fs.A_* constants
-#         if fs.A_MTIME in meta:
-#             new_time = random.uniform(oldest, now)
-#             meta[fs.A_MTIME] = new_time
-
-#     with open(pickle_path, "wb") as f:
-#         pickle.dump(vfs, f, protocol=pickle.HIGHEST_PROTOCOL)
-
-#     print("Done. Future ls -la output should show varied, recent timestamps.")
-
-# ====================== RUN STEP WITH ERROR HANDLING =========================#
-
 def run_step(name, func, cowrie_install_dir):
     """
     Run a single step (function) and report any error without stopping the script.
@@ -1511,7 +1356,6 @@ def allthethings(cowrie_install_dir):
         #("generate_host_keys", generate_host_keys),
 
         # Patch SSH auth / transport behaviour
-        #("add_random_delay_userauth", add_random_delay_userauth),
         ("transport_py", transport_py),
         ("protocol_py", protocol_py),
         ("honeypot_py", honeypot_py),
@@ -1527,10 +1371,7 @@ def allthethings(cowrie_install_dir):
         ("set_resolv_conf_nameserver", set_resolv_conf_nameserver),
 
         # --- Build virtual filesystem LAST so it captures all changes ---
-        ("fs_pickle", fs_pickle),
-
-        # If you ever re-enable timestamp randomization, add it here:
-        # ("randomize_honeyfs_timestamps", randomize_honeyfs_timestamps),
+        ("fs_pickle", fs_pickle)
     ]
 
     for name, func in steps:

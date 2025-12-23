@@ -135,7 +135,8 @@ Cowrie reads two config files from `cowrie/etc/`:
 To enable a simple Telnet listener, create:
 
 ```bash
-nano etc/cowrie.cfg
+cd etc/
+cat cowrie.cfg.dist > cowrie.cfg
 ```
 
 Add:
@@ -202,61 +203,97 @@ By default:
 
 To attract more attacks, Cowrie can listen on port 22, replacing or redirecting traffic normally handled by OpenSSH.
 
-There are **three supported methods**:
 
----
-
-## Method 1 — Using iptables (Recommended for Testing)
-
-**Run as:** `root`
-
-Forward port 22 → 2222:
-
-```bash
-sudo iptables -t nat -A PREROUTING -p tcp --dport 22 -j REDIRECT --to-port 2222
-```
-
-To make persistent on Debian/Ubuntu:
-
-```bash
-sudo apt-get install iptables-persistent
-sudo netfilter-persistent save
-```
-
----
-
-## Method 2 — Using authbind  
+## Method  — Using authbind  
 
 Allows non-root programs to bind to privileged ports (<1024).
-
-**Run as root:**
+**Run as:** `root` 
 ```bash
+sudo apt-get install authbind
 sudo touch /etc/authbind/byport/22
 sudo chown cowrie:cowrie /etc/authbind/byport/22
-sudo chmod 755 /etc/authbind/byport/22
+sudo chmod 770 /etc/authbind/byport/22
 ```
 
-**Run as cowrie:**
+Then change the listening port to 22 in `cowrie.cfg`:
+```ini
+[ssh]
+listen_endpoints = tcp:22:interface=0.0.0.0
+```
+
+Then start Cowrie normally as cowrie with authbind activated.
+**Run as:** `cowrie` 
 ```bash
-authbind --deep cowrie-env/bin/cowrie start
+AUTHBIND_ENABLED=yes cowrie start
 ```
 
 ---
 
-## Method 3 — Using setcap  
-Give Python permission to bind to lower ports.
 
-**Run as root:**
+# Troubleshooting 1
 
-```bash
-sudo setcap 'cap_net_bind_service=+ep' /home/cowrie/cowrie-env/bin/python3
+Now you should have your droplet instance on another port and cowrie on port 22.
+
+If you try to use the ssh port and test if cowrie is listening it cna happen this:
+
+```
+santiago@Marcos-MacBook-Air-2 ~ % ssh root@165.232.128.251 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ @ WARNING: REMOTE HOST IDENTIFICATION HAS CHANGED! @ @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ IT IS POSSIBLE THAT SOMEONE IS DOING SOMETHING NASTY! Someone could be eavesdropping on you right now (man-in-the-middle attack)! It is also possible that a host key has just been changed. The fingerprint for the ED25519 key sent by the remote host is SHA256:utQzkGgcTQ+kOSp9rHLnxcRvzt3BNn/volM/9Fc8z9M. Please contact your system administrator. Add correct host key in /Users/santiago/.ssh/known_hosts to get rid of this message. Offending ECDSA key in /Users/santiago/.ssh/known_hosts:18 Host key for 165.232.128.251 has changed and you have requested strict checking. Host key verification failed.
 ```
 
-Then start Cowrie normally as cowrie.
+*This is because before in your ssh configuration of the keys you had associated the host key (of the Digital Ocean) to this ip.
+Now it using the cowrie host key*
 
----
+This connects to port 22 by default.Previously:
+- Port 22 → real sshd
+- Your Mac saved sshd’s host key in ~/.ssh/known_hosts
 
-# Troubleshooting
+Now:
+- Port 22 → Cowrie
+- Cowrie presents a different (fake) SSH host key
+
+So your client says:
+“Last time I talked to this IP on port 22, I saw one key. Now I’m seeing a different key. That looks like a MITM attak"
+
+Your real SSH is now accessible at:
+```bash
+ssh -p 50647 -i ~/.ssh/cowrie_key root@165.232.128.251
+```
+
+That:
+- uses a different port
+- uses a different service
+- uses a different host key
+
+and is not impacted by Cowrie
+*Port 22 and port 50647 are now two different worlds.*
+
+To avoid that message and actually connect to cowrieR
+```bash
+ssh-keygen -R 165.232.128.251
+```
+This removes all cached keys for that IP, ***IT DOES NOT DELETE ANY KEY FROM YOUR LOCAL MACHINE***
+
+Now by doing it again:
+```bash
+ssh root@165.232.128.251
+```
+
+You should see something like:
+```
+The authenticity of host '165.232.128.251' can't be established.
+ED25519 key fingerprint is SHA256:...
+Are you sure you want to continue connecting (yes/no)?
+```
+If you type yes, you are trusting Cowrie’s fake key (which is fine for testing if everything works).
+
+To connect to the actual Droplet machine:
+```bash
+ssh -p 50647 -i ~/.ssh/cowrie_key root@165.232.128.251
+```
+
+
+
+# Troubleshooting 2
 
 ---
 
