@@ -29,6 +29,26 @@ git clone https://github.com/marcosantiagomuro/obscurer.git obscurer-cowrie
 
 ```
 
+the go to 
+
+```bash
+cd obscurer-cowrie
+python3 -m venv obscurer-env
+source obscurer-env/bin/activate
+```
+so it will show something like:
+```
+(obscurer-env)
+```
+then with the venv active
+```bash
+pip install --upgrade pip
+pip install -r requirements.txt
+```
+
+Then run the script using the venv:
+
+
 ```bash
 ./obscurer.py [options] path/to/cowrie/directory
 
@@ -38,6 +58,12 @@ Options:
   
 Example:
 ./obscurer.py -a /home/cowrie/cowrie/
+```
+
+
+Decativate the venv when done
+```bash
+deactivate
 ```
 
 Once the script has completed, restart the Cowrie service and SSH to the host to confirm changes have been made.

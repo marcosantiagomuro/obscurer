@@ -10,7 +10,6 @@ import csv
 import string
 import re
 from random import randint
-#import time
 from optparse import OptionParser
 import sys
 import os
