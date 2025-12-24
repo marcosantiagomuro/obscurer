@@ -3,7 +3,7 @@
 # the COWRIE filesystem can be found here: https://github.com/cowrie/cowrie
 
 
-from urllib.request import urlopen
+import urllib.request
 from shutil import copyfileobj
 import random
 from passlib.hash import sha512_crypt
@@ -354,15 +354,23 @@ def getoui():
     url = "https://standards-oui.ieee.org/oui/oui.csv"
     filename = "oui.csv"
 
+    req = urllib.request.Request(
+        url,
+        headers={
+            "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
+                          "(KHTML, like Gecko) Chrome/120.0 Safari/537.36",
+            "Accept": "text/csv,*/*;q=0.8",
+        },
+    )
+
     try:
-        with urlopen(url, timeout=30) as r, open(filename, "wb") as f:
+        with urllib.request.urlopen(req, timeout=20) as r, open(filename, "wb") as f:
             copyfileobj(r, f)
         return 0
     except Exception as e:
         print("Could not retrieve the OUI file. Skipping MAC address changes.")
         print(f"Error: {e}")
         return 1
-
 
 # The function below ustilizes the getoui() function to download list of valid OUI's.
 # If the oui.txt file exists in the directory, it will then prompt the user to parse the file instead download a new one.
@@ -1447,7 +1455,7 @@ SSH Version: {4}
 SSH Listen Port: {5}
 Internal IP: {6}
 
-""".format(usernames_str,passwords_str, SYSTEM_PROFILE["hostname"], SYSTEM_PROFILE["os_pretty_name"], SYSTEM_PROFILE["ssh_version"], "2222", ip_address)
+""".format(usernames_str,passwords_str, SYSTEM_PROFILE["hostname"], SYSTEM_PROFILE["os_pretty_name"], SYSTEM_PROFILE["ssh_version"], "22", ip_address)
             print(output)
         else:
             print("[!] Incorrect directory path. The path does not exist.")

@@ -50,16 +50,20 @@ Then run the script using the venv:
 
 
 ```bash
-./obscurer.py [options] path/to/cowrie/directory
+python obscurer.py [options] path/to/cowrie/directory
 
 Options:
   -h, --help    Show this help message and exit
   -a, --allthethings  Change all of the default values
   
 Example:
-./obscurer.py -a /home/cowrie/cowrie/
+python obscurer.py -a /home/cowrie/cowrie/
 ```
 
+by using this instead we are indicating to use the global python installed and not the one within the venv
+```bash
+./obscurer.py [options] path/to/cowrie/directory
+```
 
 Decativate the venv when done
 ```bash
