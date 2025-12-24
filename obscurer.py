@@ -435,6 +435,12 @@ def cowrie_cfg(cowrie_install_dir):
     with open(cfg_path, "r+", encoding="utf-8") as cowrie_cfg:
         cowrie_config = cowrie_cfg.read()
 
+    #changing listening port for ssh
+    cowrie_config = cowrie_config.replace(
+    "listen_endpoints = tcp:2222:interface=0.0.0.0",
+    "listen_endpoints = tcp:22:interface=0.0.0.0"
+    )
+
     # Build values
     refunc = r"(?<=version ).*?(?= \()"
     proc_version = SYSTEM_PROFILE["proc_version"]
@@ -447,7 +453,6 @@ def cowrie_cfg(cowrie_install_dir):
         "fake_addr": ip_address,  # will match "#fake_addr = ..." or "fake_addr = ..."
         "arch": SYSTEM_PROFILE["arch"],
         "version": SYSTEM_PROFILE["ssh_version"],
-        "listen_port": "22",
         "kernel_version": uname_kernel[0],
         "kernel_build_string": SYSTEM_PROFILE["kernel_build_string"],
         "ssh_version": ssh_v_output,
@@ -898,7 +903,7 @@ def fs_pickle(cowrie_install_dir):
     except FileNotFoundError:
         pass
     os.system(
-        "{0}/bin/createfs -l {0}/honeyfs -o {0}/share/cowrie/fs.pickle".format(cowrie_install_dir))
+        "{0}bin/createfs -l {0}honeyfs -o {0}share/cowrie/fs.pickle".format(cowrie_install_dir))
 
 
 # The following function below creates believable files in the home directory of the ubuntu user inside the honeyfs/home/ubuntu directory.

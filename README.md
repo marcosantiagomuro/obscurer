@@ -67,3 +67,9 @@ deactivate
 ```
 
 Once the script has completed, restart the Cowrie service and SSH to the host to confirm changes have been made.
+
+Then start Cowrie normally as cowrie with authbind activated.
+**Run as:** `cowrie` 
+```bash
+AUTHBIND_ENABLED=yes cowrie start
+```
