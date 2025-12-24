@@ -3,7 +3,8 @@
 # the COWRIE filesystem can be found here: https://github.com/cowrie/cowrie
 
 
-import urllib.request
+from urllib.request import urlopen
+from shutil import copyfileobj
 import random
 from passlib.hash import sha512_crypt
 import csv
@@ -354,7 +355,8 @@ def getoui():
     filename = "oui.csv"
 
     try:
-        urllib.request.urlretrieve(url, filename)  # Download the OUI file.
+        with urlopen(url, timeout=30) as r, open(filename, "wb") as f:
+            copyfileobj(r, f)
         return 0
     except Exception as e:
         print("Could not retrieve the OUI file. Skipping MAC address changes.")
