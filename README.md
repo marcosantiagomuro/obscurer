@@ -15,15 +15,21 @@ This script will work best with new installations of Cowrie, with unedited confi
 
 ## Usage
 
-To install it as a cowrie user (so then there will be no issues in writing the files inside the cowrie directory of the cowrie user
+To install it as a cowrie user, so then there will be no issues in writing the files inside the cowrie directory of the cowrie user
 
+**Run as:** `cowrie` user
+to switch (no cowrie-env needed):
+```bash
+sudo su - cowrie
 ```
+Then
+```bash
 cd /home/cowrie
 git clone https://github.com/marcosantiagomuro/obscurer.git obscurer-cowrie
 
 ```
 
-```
+```bash
 ./obscurer.py [options] path/to/cowrie/directory
 
 Options:
